@@ -1,5 +1,5 @@
 {
-  "pluginAlias": "ExampleHomebridgePlugin",
+  "pluginAlias": "Homebridge OpenSprinkler",
   "pluginType": "platform",
   "singular": true,
   "schema": {
@@ -9,7 +9,27 @@
         "title": "Name",
         "type": "string",
         "required": true,
-        "default": "Example Dynamic Platform"
+        "default": "Homebridge OpenSprinkler"
+      },
+      "password": {
+        "title": "Password",
+        "type": "string",
+        "required": true,
+        "default": "Password"
+      },
+      "host": {
+        "title": "Host",
+        "type": "string",
+        "required": true,
+        "default": "localhost"
+      },
+      "valves": {
+        "title": "Valves",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "required": true
       }
     }
   }
