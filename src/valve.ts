@@ -1,0 +1,64 @@
+import { Service, CharacteristicValue } from 'homebridge';
+import { OpenSprinklerPlatform } from './platform';
+import { OpenSprinklerApi } from './openSprinklerApi';
+import { ValveConfig } from './interfaces';
+
+export class Valve {
+  private state = {
+    active: 0,
+    inUse: 0,
+    remainingDuration: 0,
+  };
+
+  constructor(
+    private readonly platform: OpenSprinklerPlatform,
+    private readonly service: Service,
+    private readonly openSprinklerApi: OpenSprinklerApi,
+    private readonly valveInfo: ValveConfig,
+  ) {
+    service.setCharacteristic(platform.Characteristic.Name, this.valveInfo.name);
+    service.setCharacteristic(platform.Characteristic.ValveType, platform.Characteristic.ValveType.IRRIGATION);
+    service.setCharacteristic(platform.Characteristic.Active, platform.Characteristic.Active.INACTIVE);
+    service.setCharacteristic(platform.Characteristic.InUse, platform.Characteristic.InUse.NOT_IN_USE);
+    service.setCharacteristic(platform.Characteristic.SetDuration, valveInfo.defaultDuration);
+
+    service.getCharacteristic(this.platform.Characteristic.Active).onSet(this.setActive.bind(this));
+    service.getCharacteristic(this.platform.Characteristic.RemainingDuration).onGet(this.getRemainingDuration.bind(this));
+
+    // Add optional characteristic so that valve names actually show up in Home App
+    service.addOptionalCharacteristic(platform.Characteristic.ConfiguredName);
+    service.setCharacteristic(platform.Characteristic.ConfiguredName, this.valveInfo.name);
+  }
+
+  getValveInfo(): ValveConfig {
+    return this.valveInfo;
+  }
+
+  getActiveState(): boolean {
+    return this.state.active ? true : false;
+  }
+
+  async getRemainingDuration(): Promise<CharacteristicValue> {
+    return this.state.remainingDuration;
+  }
+
+  updateActiveCharacteristic(value: boolean) {
+    const updateValue = value ? 1 : 0;
+    this.state.active = updateValue;
+    this.service.updateCharacteristic(this.platform.Characteristic.Active, updateValue);
+  }
+
+  updateInUseCharacteristic(value: boolean) {
+    const updateValue = value ? 1 : 0;
+    this.state.inUse = updateValue;
+    this.service.updateCharacteristic(this.platform.Characteristic.InUse, updateValue);
+  }
+
+  async setActive(value: CharacteristicValue) {
+    this.platform.log.debug(`Setting ${this.valveInfo.name} to a value of ${value}.`);
+    this.state.active = value as number;
+    this.state.inUse = value as number;
+    this.service.updateCharacteristic(this.platform.Characteristic.Active, value);
+    this.service.updateCharacteristic(this.platform.Characteristic.InUse, value);
+  }
+}

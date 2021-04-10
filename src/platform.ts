@@ -63,9 +63,8 @@ export class OpenSprinklerPlatform implements DynamicPlatformPlugin {
     if (existingAccessory) {
       this.log.info('Restoring existing accessory from cache:', existingAccessory.displayName);
 
-      // if you need to update the accessory.context then you should run `api.updatePlatformAccessories`. eg.:
-      // existingAccessory.context.device = device;
-      // this.api.updatePlatformAccessories([existingAccessory]);
+      existingAccessory.context.device = { firmwareVersion, valves: this.config.valves };
+      this.api.updatePlatformAccessories([existingAccessory]);
 
       new IrrigationSystem(this, existingAccessory, this.openSprinklerApi);
     } else {
@@ -75,7 +74,7 @@ export class OpenSprinklerPlatform implements DynamicPlatformPlugin {
       // create a new accessory
       const accessory = new this.api.platformAccessory('OpenSprinkler', uuid);
 
-      accessory.context.device = { firmwareVersion };
+      accessory.context.device = { firmwareVersion, valves: this.config.valves };
 
       new IrrigationSystem(this, accessory, this.openSprinklerApi);
 

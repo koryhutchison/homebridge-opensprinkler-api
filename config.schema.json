@@ -23,11 +23,27 @@
         "required": true,
         "default": "localhost"
       },
+      "pollInterval": {
+        "title": "Poll Interval",
+        "type": "number",
+        "default": 15
+      },
       "valves": {
         "title": "Valves",
         "type": "array",
         "items": {
-          "type": "string"
+          "title": "Valve Info",
+          "type": "object",
+          "properties": {
+            "name": {
+              "title": "Name (Must end with a number or letter)",
+              "type": "string"
+            },
+            "defaultDuration": {
+              "title": "Default Duration (In Seconds)",
+              "type": "number"
+            }
+          }
         },
         "required": true
       }

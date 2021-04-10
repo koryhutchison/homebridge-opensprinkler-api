@@ -10,13 +10,7 @@ export class OpenSprinklerApi {
   }
 
   async getInfo() {
-    const options = {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    };
-    const { fwv, devid } = await this.makeRequest('jo', options);
+    const { fwv, devid } = await this.makeRequest('jo');
     const firmwareVersion = fwv.toString();
 
     return {
@@ -25,7 +19,14 @@ export class OpenSprinklerApi {
     };
   }
 
-  private async makeRequest(endpoint: string, options: Record<string, unknown>) {
+  async getValveStatus() {
+    const { sn: valves } = await this.makeRequest('js');
+    return valves.map(valve => {
+      return valve ? true : false;
+    });
+  }
+
+  private async makeRequest(endpoint: string, options: Record<string, unknown> = { metod: 'GET' }) {
     const params = new URLSearchParams();
     params.append('pw', this.password);
 

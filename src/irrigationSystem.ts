@@ -2,6 +2,8 @@ import { Service, PlatformAccessory, CharacteristicValue } from 'homebridge';
 
 import { OpenSprinklerPlatform } from './platform';
 import { OpenSprinklerApi } from './openSprinklerApi';
+import { Valve } from './valve';
+import { ValveConfig } from './interfaces';
 
 /**
  * Platform Accessory
@@ -10,6 +12,7 @@ import { OpenSprinklerApi } from './openSprinklerApi';
  */
 export class IrrigationSystem {
   private service: Service;
+  private valves: Array<Valve> = [];
 
   constructor(
     private readonly platform: OpenSprinklerPlatform,
@@ -25,67 +28,59 @@ export class IrrigationSystem {
     this.service =
       this.accessory.getService(this.platform.Service.IrrigationSystem) ||
       this.accessory.addService(this.platform.Service.IrrigationSystem);
-    this.service.setCharacteristic(this.platform.Characteristic.Active, this.platform.Characteristic.Active.INACTIVE);
-    this.service.setCharacteristic(this.platform.Characteristic.ProgramMode, this.platform.Characteristic.ProgramMode.NO_PROGRAM_SCHEDULED);
-    this.service.setCharacteristic(this.platform.Characteristic.InUse, this.platform.Characteristic.InUse.NOT_IN_USE);
-    this.service.setCharacteristic(this.platform.Characteristic.Name, 'OpenSprinkler');
 
-    /**
-     * Updating characteristics values asynchronously.
-     *
-     * Example showing how to update the state of a Characteristic asynchronously instead
-     * of using the `on('get')` handlers.
-     * Here we change update the motion sensor trigger states on and off every 10 seconds
-     * the `updateCharacteristic` method.
-     *
-     */
-    // let motionDetected = false;
-    // setInterval(() => {
-    //   // EXAMPLE - inverse the trigger
-    //   motionDetected = !motionDetected;
-    //
-    //   // push the new value to HomeKit
-    //   motionSensorOneService.updateCharacteristic(this.platform.Characteristic.MotionDetected, motionDetected);
-    //   motionSensorTwoService.updateCharacteristic(this.platform.Characteristic.MotionDetected, !motionDetected);
-    //
-    //   this.platform.log.debug('Triggering motionSensorOneService:', motionDetected);
-    //   this.platform.log.debug('Triggering motionSensorTwoService:', !motionDetected);
-    // }, 10000);
+    this.service.setCharacteristic(this.platform.Characteristic.Name, 'OpenSprinkler');
+    this.service.setCharacteristic(this.platform.Characteristic.Active, this.platform.Characteristic.Active.INACTIVE);
+    this.service.setCharacteristic(this.platform.Characteristic.InUse, this.platform.Characteristic.InUse.NOT_IN_USE);
+    this.service.setCharacteristic(this.platform.Characteristic.ProgramMode, this.platform.Characteristic.ProgramMode.NO_PROGRAM_SCHEDULED);
+
+    this.setUpValves();
+
+    // If pollInterval isn't defined in the config, set it to the default of 15 seconds
+    const pollInterval = this.platform.config.pollInterval || 15;
+
+    setInterval(async () => {
+      try {
+        const valveStatuses = await this.openSprinklerApi.getValveStatus();
+        // Do this to only pass in the valves that are being used in the config
+        this.updateValves(valveStatuses.slice(0, this.platform.config.valves.length));
+      } catch (error) {
+        this.platform.log.error(error);
+      }
+    }, pollInterval * 1000);
   }
 
-  /**
-   * Handle "SET" requests from HomeKit
-   * These are sent when the user changes the state of an accessory, for example, turning on a Light bulb.
-   */
-  // async setOn(value: CharacteristicValue) {
-  //   // implement your own code to turn your device on/off
-  //   this.exampleStates.On = value as boolean;
-  //
-  //   this.platform.log.debug('Set Characteristic On ->', value);
-  // }
+  setUpValves() {
+    this.platform.config.valves.forEach((valve: ValveConfig) => {
+      const service =
+        this.accessory.getService(valve.name) ||
+        this.accessory.addService(this.platform.Service.Valve, valve.name, `VALVE_${valve.name.replace(' ', '').toUpperCase()}`);
 
-  /**
-   * Handle the "GET" requests from HomeKit
-   * These are sent when HomeKit wants to know the current state of the accessory, for example, checking if a Light bulb is on.
-   *
-   * GET requests should return as fast as possbile. A long delay here will result in
-   * HomeKit being unresponsive and a bad user experience in general.
-   *
-   * If your device takes time to respond you should update the status of your device
-   * asynchronously instead using the `updateCharacteristic` method instead.
+      const valveInstance = new Valve(this.platform, service, this.openSprinklerApi, valve);
 
-   * @example
-   * this.service.updateCharacteristic(this.platform.Characteristic.On, true)
-   */
-  // async getOn(): Promise<CharacteristicValue> {
-  //   // implement your own code to check if the device is on
-  //   const isOn = this.exampleStates.On;
-  //
-  //   this.platform.log.debug('Get Characteristic On ->', isOn);
-  //
-  //   // if you need to return an error to show the device as "Not Responding" in the Home app:
-  //   // throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
-  //
-  //   return isOn;
-  // }
+      this.service.addLinkedService(service);
+
+      this.valves.push(valveInstance);
+    });
+  }
+
+  updateValves(valveStatuses: Array<boolean>) {
+    // TODO: Maybe move this to the api side
+    const detailedValveStatuses = valveStatuses.reduce((obj, valveStatus, index) => {
+      // The user must define their valve array in the config according to the order in OpenSprinkler
+      obj[this.platform.config.valves[index].name] = valveStatus;
+      return obj;
+    }, {});
+
+    console.log(detailedValveStatuses);
+
+    this.valves.forEach(valve => {
+      const valveInfo = valve.getValveInfo();
+
+      if (detailedValveStatuses[valveInfo.name] != valve.getActiveState()) {
+        valve.updateActiveCharacteristic(detailedValveStatuses[valveInfo.name]);
+        valve.updateInUseCharacteristic(detailedValveStatuses[valveInfo.name]);
+      }
+    });
+  }
 }
