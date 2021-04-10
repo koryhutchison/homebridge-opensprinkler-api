@@ -21,7 +21,7 @@ export class OpenSprinklerApi {
 
   async getValveStatus() {
     const { sn: valves } = await this.makeRequest('js');
-    return valves.map(valve => {
+    return valves.map((valve: number) => {
       return valve ? true : false;
     });
   }

@@ -1,4 +1,4 @@
-import { Service, PlatformAccessory, CharacteristicValue } from 'homebridge';
+import { Service, PlatformAccessory } from 'homebridge';
 
 import { OpenSprinklerPlatform } from './platform';
 import { OpenSprinklerApi } from './openSprinklerApi';
@@ -72,12 +72,10 @@ export class IrrigationSystem {
       return obj;
     }, {});
 
-    console.log(detailedValveStatuses);
-
     this.valves.forEach(valve => {
       const valveInfo = valve.getValveInfo();
 
-      if (detailedValveStatuses[valveInfo.name] != valve.getActiveState()) {
+      if (detailedValveStatuses[valveInfo.name] !== valve.getActiveState()) {
         valve.updateActiveCharacteristic(detailedValveStatuses[valveInfo.name]);
         valve.updateInUseCharacteristic(detailedValveStatuses[valveInfo.name]);
       }
