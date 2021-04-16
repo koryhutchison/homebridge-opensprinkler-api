@@ -33,11 +33,30 @@ export class OpenSprinklerApi {
     }, {});
   }
 
-  private async makeRequest(endpoint: string, options: Record<string, unknown> = { metod: 'GET' }) {
-    const params = new URLSearchParams();
-    params.append('pw', this.password);
+  async setValve(value: number, index: number, duration: number) {
+    const params = {
+      sid: index,
+      en: value,
+      t: duration,
+    };
+    const { result } = await this.makeRequest('cm', params);
 
-    const response = await fetch(`${this.baseUrl}/${endpoint}?${params.toString()}`, options);
+    if (result !== 1) {
+      throw new Error('Failed to set valve');
+    }
+  }
+
+  private async makeRequest(endpoint: string, params?: Record<string, number>) {
+    const urlParams = new URLSearchParams();
+    urlParams.append('pw', this.password);
+
+    if (params) {
+      Object.entries(params).forEach(value => {
+        urlParams.append(value[0], value[1].toString());
+      });
+    }
+
+    const response = await fetch(`${this.baseUrl}/${endpoint}?${urlParams.toString()}`);
     if (response.ok) {
       return response.json();
     } else {

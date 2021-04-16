@@ -15,6 +15,7 @@ export class Valve {
     private readonly service: Service,
     private readonly openSprinklerApi: OpenSprinklerApi,
     private readonly valveInfo: ValveConfig,
+    private readonly valveIndex: number,
   ) {
     service.setCharacteristic(platform.Characteristic.Name, this.valveInfo.name);
     service.setCharacteristic(platform.Characteristic.ValveType, platform.Characteristic.ValveType.IRRIGATION);
@@ -57,8 +58,15 @@ export class Valve {
   async setActive(value: CharacteristicValue) {
     this.platform.log.debug(`Setting ${this.valveInfo.name} to a value of ${value}.`);
     this.state.active = value as number;
-    this.state.inUse = value as number;
     this.service.updateCharacteristic(this.platform.Characteristic.Active, value);
-    this.service.updateCharacteristic(this.platform.Characteristic.InUse, value);
+
+    try {
+      await this.openSprinklerApi.setValve(value as number, this.valveIndex, this.valveInfo.defaultDuration);
+
+      this.state.inUse = value as number;
+      this.service.updateCharacteristic(this.platform.Characteristic.InUse, value);
+    } catch (error) {
+      this.platform.log.error(error);
+    }
   }
 }

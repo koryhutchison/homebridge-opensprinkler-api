@@ -42,7 +42,6 @@ export class IrrigationSystem {
     setInterval(async () => {
       try {
         const valveStatuses = await this.openSprinklerApi.getValveStatus(this.platform.config.valves);
-        // Perform Array.slice here because OpenSprinkler may return more valves than the user actually uses
         this.updateValves(valveStatuses);
       } catch (error) {
         this.platform.log.error(error);
@@ -51,12 +50,12 @@ export class IrrigationSystem {
   }
 
   setUpValves() {
-    this.platform.config.valves.forEach((valve: ValveConfig) => {
+    this.platform.config.valves.forEach((valve: ValveConfig, index: number) => {
       const service =
         this.accessory.getService(valve.name) ||
         this.accessory.addService(this.platform.Service.Valve, valve.name, `VALVE_${valve.name.replace(' ', '').toUpperCase()}`);
 
-      const valveInstance = new Valve(this.platform, service, this.openSprinklerApi, valve);
+      const valveInstance = new Valve(this.platform, service, this.openSprinklerApi, valve, index);
 
       this.service.addLinkedService(service);
 
