@@ -41,9 +41,9 @@ export class IrrigationSystem {
 
     setInterval(async () => {
       try {
-        const valveStatuses = await this.openSprinklerApi.getValveStatus();
-        // Do this to only pass in the valves that are being used in the config
-        this.updateValves(valveStatuses.slice(0, this.platform.config.valves.length));
+        const valveStatuses = await this.openSprinklerApi.getValveStatus(this.platform.config.valves);
+        // Perform Array.slice here because OpenSprinkler may return more valves than the user actually uses
+        this.updateValves(valveStatuses);
       } catch (error) {
         this.platform.log.error(error);
       }
@@ -64,20 +64,13 @@ export class IrrigationSystem {
     });
   }
 
-  updateValves(valveStatuses: Array<boolean>) {
-    // TODO: Maybe move this to the api side
-    const detailedValveStatuses = valveStatuses.reduce((obj, valveStatus, index) => {
-      // The user must define their valve array in the config according to the order in OpenSprinkler
-      obj[this.platform.config.valves[index].name] = valveStatus;
-      return obj;
-    }, {});
-
+  updateValves(valveStatuses: Array<Record<string, boolean>>) {
     this.valves.forEach(valve => {
       const valveInfo = valve.getValveInfo();
 
-      if (detailedValveStatuses[valveInfo.name] !== valve.getActiveState()) {
-        valve.updateActiveCharacteristic(detailedValveStatuses[valveInfo.name]);
-        valve.updateInUseCharacteristic(detailedValveStatuses[valveInfo.name]);
+      if (valveStatuses[valveInfo.name] !== valve.getActiveState()) {
+        valve.updateActiveCharacteristic(valveStatuses[valveInfo.name]);
+        valve.updateInUseCharacteristic(valveStatuses[valveInfo.name]);
       }
     });
   }
