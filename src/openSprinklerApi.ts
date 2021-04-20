@@ -11,11 +11,12 @@ export class OpenSprinklerApi {
   }
 
   async getInfo() {
-    const { fwv, devid } = await this.makeRequest('jo');
+    const { fwv, hwv, devid } = await this.makeRequest('jo');
     const firmwareVersion = fwv.toString();
 
     return {
       firmwareVersion: firmwareVersion.split('').join('.'),
+      hardwareVersion: this.getHardwareVersion(hwv),
       deviceId: devid,
     };
   }
@@ -62,6 +63,27 @@ export class OpenSprinklerApi {
     } else {
       const text = await response.text();
       throw new Error(`Request to ${endpoint} failed. Status Code: ${response.status} Message: ${text}`);
+    }
+  }
+
+  // Code in here comes from the OpenSprinkler JavaScript code:
+  // https://github.com/OpenSprinkler/OpenSprinkler-App/blob/6116c514cbf3a5f25613ab6dbad8ddafc00ceec1/www/js/main.js#L10854
+  private getHardwareVersion(rawHardwareVersion: any) {
+    if (typeof rawHardwareVersion === 'string') {
+      return rawHardwareVersion;
+    } else {
+      switch (rawHardwareVersion) {
+        case 64:
+          return 'OSPi';
+        case 128:
+          return 'OSBo';
+        case 192:
+          return 'Linux';
+        case 255:
+          return 'Demo';
+        default:
+          return (((rawHardwareVersion / 10) >> 0) % 10) + '.' + (rawHardwareVersion % 10);
+      }
     }
   }
 }

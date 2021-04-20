@@ -23,7 +23,9 @@ export class IrrigationSystem {
     this.accessory
       .getService(this.platform.Service.AccessoryInformation)!
       .setCharacteristic(this.platform.Characteristic.Manufacturer, 'OpenSprinkler')
-      .setCharacteristic(this.platform.Characteristic.FirmwareRevision, accessory.context.device.firmwareVersion);
+      .setCharacteristic(this.platform.Characteristic.FirmwareRevision, accessory.context.device.firmwareVersion)
+      .setCharacteristic(this.platform.Characteristic.SerialNumber, accessory.context.device.deviceId || 'No Serial Number')
+      .setCharacteristic(this.platform.Characteristic.Model, accessory.context.device.hardwareVersion);
 
     this.service =
       this.accessory.getService(this.platform.Service.IrrigationSystem) ||

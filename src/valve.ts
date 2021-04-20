@@ -10,6 +10,8 @@ export class Valve {
     remainingDuration: 0,
   };
 
+  private interval!: NodeJS.Timeout;
+
   constructor(
     private readonly platform: OpenSprinklerPlatform,
     private readonly service: Service,
@@ -64,7 +66,16 @@ export class Valve {
       await this.openSprinklerApi.setValve(value as number, this.valveIndex, this.valveInfo.defaultDuration);
 
       this.state.inUse = value as number;
+      this.state.remainingDuration = this.valveInfo.defaultDuration;
       this.service.updateCharacteristic(this.platform.Characteristic.InUse, value);
+      this.service.updateCharacteristic(this.platform.Characteristic.RemainingDuration, this.valveInfo.defaultDuration);
+
+      // If turning on the valve, set interval to track remainingDuration, otherwise, clear the interval
+      if (value) {
+        this.interval = setInterval(() => this.state.remainingDuration--, 1000);
+      } else {
+        clearInterval(this.interval);
+      }
     } catch (error) {
       this.platform.log.error(error);
     }

@@ -3,6 +3,7 @@ import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig, 
 import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
 import { IrrigationSystem } from './irrigationSystem';
 import { OpenSprinklerApi } from './openSprinklerApi';
+import md5 from 'md5';
 
 /**
  * HomebridgePlatform
@@ -20,7 +21,10 @@ export class OpenSprinklerPlatform implements DynamicPlatformPlugin {
 
   constructor(public readonly log: Logger, public readonly config: PlatformConfig, public readonly api: API) {
     this.log.debug('Finished initializing platform:', this.config.name);
-    this.openSprinklerApi = new OpenSprinklerApi(this.config.password, this.config.host);
+
+    const password = this.config.password.plain ? md5(this.config.password.plain) : this.config.password.md5;
+
+    this.openSprinklerApi = new OpenSprinklerApi(password, this.config.host);
 
     // When this event is fired it means Homebridge has restored all cached accessories from disk.
     // Dynamic Platform plugins should only register new accessories after this event was fired,
@@ -48,14 +52,14 @@ export class OpenSprinklerPlatform implements DynamicPlatformPlugin {
 
   async setUp() {
     try {
-      const { firmwareVersion, deviceId } = await this.openSprinklerApi.getInfo();
-      this.createIrrigationSystem(firmwareVersion, deviceId);
+      const { firmwareVersion, hardwareVersion, deviceId } = await this.openSprinklerApi.getInfo();
+      this.createIrrigationSystem(firmwareVersion, hardwareVersion, deviceId);
     } catch (error) {
       this.log.error(error);
     }
   }
 
-  createIrrigationSystem(firmwareVersion: string, deviceId: number) {
+  createIrrigationSystem(firmwareVersion: string, hardwareVersion: string, deviceId: number) {
     const uuid = this.api.hap.uuid.generate(deviceId.toString());
 
     const existingAccessory = this.accessories.find(accessory => accessory.UUID === uuid);
@@ -63,7 +67,7 @@ export class OpenSprinklerPlatform implements DynamicPlatformPlugin {
     if (existingAccessory) {
       this.log.info('Restoring existing accessory from cache:', existingAccessory.displayName);
 
-      existingAccessory.context.device = { firmwareVersion, valves: this.config.valves };
+      existingAccessory.context.device = { firmwareVersion, hardwareVersion, deviceId, valves: this.config.valves };
       this.api.updatePlatformAccessories([existingAccessory]);
 
       new IrrigationSystem(this, existingAccessory, this.openSprinklerApi);
@@ -74,7 +78,7 @@ export class OpenSprinklerPlatform implements DynamicPlatformPlugin {
       // create a new accessory
       const accessory = new this.api.platformAccessory('OpenSprinkler', uuid);
 
-      accessory.context.device = { firmwareVersion, valves: this.config.valves };
+      accessory.context.device = { firmwareVersion, hardwareVersion, deviceId, valves: this.config.valves };
 
       new IrrigationSystem(this, accessory, this.openSprinklerApi);
 

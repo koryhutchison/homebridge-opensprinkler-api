@@ -13,9 +13,18 @@
       },
       "password": {
         "title": "Password",
-        "type": "string",
+        "type": "object",
         "required": true,
-        "default": "Password"
+        "properties": {
+          "md5": {
+            "title": "md5 version of your password",
+            "type": "string"
+          },
+          "plain": {
+            "title": "Plain string version of your password (Will create md5 for you)",
+            "type": "string"
+          }
+        }
       },
       "host": {
         "title": "Host",
