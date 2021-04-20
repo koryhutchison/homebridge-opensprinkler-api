@@ -68,7 +68,7 @@ export class OpenSprinklerApi {
 
   // Code in here comes from the OpenSprinkler JavaScript code:
   // https://github.com/OpenSprinkler/OpenSprinkler-App/blob/6116c514cbf3a5f25613ab6dbad8ddafc00ceec1/www/js/main.js#L10854
-  private getHardwareVersion(rawHardwareVersion: any) {
+  private getHardwareVersion(rawHardwareVersion: string | number) {
     if (typeof rawHardwareVersion === 'string') {
       return rawHardwareVersion;
     } else {
