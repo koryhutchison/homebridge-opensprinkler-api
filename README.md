@@ -11,8 +11,6 @@
 
 Homebridge plugin to control OpenSprinkler with HomeKit via the OpenSprinkler API as documented [here](https://openthings.freshdesk.com/support/solutions/articles/5000716363-os-api-documents).
 
-### Currently a work in progress still. No releases yet.
-
 </span>
 
 ## Installation

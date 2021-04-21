@@ -70,6 +70,7 @@ export class IrrigationSystem {
       if (valveStatuses[valveInfo.name] !== valve.getActiveState()) {
         valve.updateActiveCharacteristic(valveStatuses[valveInfo.name]);
         valve.updateInUseCharacteristic(valveStatuses[valveInfo.name]);
+        // TODO: Need to update the remainingDuration value here as well
       }
     });
   }

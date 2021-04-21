@@ -1,5 +1,5 @@
 {
-  "pluginAlias": "Homebridge OpenSprinkler",
+  "pluginAlias": "HomebridgeOpenSprinklerApi",
   "pluginType": "platform",
   "singular": true,
   "schema": {

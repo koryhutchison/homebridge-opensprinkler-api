@@ -76,7 +76,15 @@ export class Valve {
 
       // If turning on the valve, set interval to track remainingDuration, otherwise, clear the interval
       if (value) {
-        this.interval = setInterval(() => this.state.remainingDuration--, 1000);
+        this.interval = setInterval(() => {
+          this.state.remainingDuration--;
+
+          if (this.state.remainingDuration <= 0) {
+            this.service.updateCharacteristic(this.platform.Characteristic.InUse, this.platform.Characteristic.InUse.NOT_IN_USE);
+            this.service.updateCharacteristic(this.platform.Characteristic.Active, this.platform.Characteristic.Active.INACTIVE);
+            clearInterval(this.interval);
+          }
+        }, 1000);
       } else {
         clearInterval(this.interval);
       }
