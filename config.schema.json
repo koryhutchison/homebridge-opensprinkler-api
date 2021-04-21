@@ -15,7 +15,7 @@
         "title": "Password",
         "type": "object",
         "required": true,
-        "description": "Define a md5 version of your password or use plain text. One is required."
+        "description": "Define a md5 version of your password or use plain text. One is required.",
         "properties": {
           "md5": {
             "title": "md5",
