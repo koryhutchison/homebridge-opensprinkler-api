@@ -1,6 +1,5 @@
 {
-  "private": true,
-  "displayName": "Homebridge OpenSprinkler",
+  "displayName": "Homebridge OpenSprinkler API",
   "name": "homebridge-opensprinkler-api",
   "version": "1.0.0",
   "description": "A short description about what your plugin does.",

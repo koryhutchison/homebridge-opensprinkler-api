@@ -19,38 +19,42 @@ export class Valve {
     private readonly valveInfo: ValveConfig,
     private readonly valveIndex: number,
   ) {
-    service.setCharacteristic(platform.Characteristic.Name, this.valveInfo.name);
+    service.setCharacteristic(platform.Characteristic.Name, valveInfo.name);
     service.setCharacteristic(platform.Characteristic.ValveType, platform.Characteristic.ValveType.IRRIGATION);
     service.setCharacteristic(platform.Characteristic.Active, platform.Characteristic.Active.INACTIVE);
     service.setCharacteristic(platform.Characteristic.InUse, platform.Characteristic.InUse.NOT_IN_USE);
     service.setCharacteristic(platform.Characteristic.SetDuration, valveInfo.defaultDuration);
 
-    service.getCharacteristic(this.platform.Characteristic.Active).onSet(this.setActive.bind(this));
-    service.getCharacteristic(this.platform.Characteristic.RemainingDuration).onGet(this.getRemainingDuration.bind(this));
+    service.getCharacteristic(platform.Characteristic.Active).onSet(this.setActive.bind(this));
+    service.getCharacteristic(platform.Characteristic.RemainingDuration).onGet(this.getRemainingDuration.bind(this));
 
     // Add optional characteristic so that valve names actually show up in Home App
     service.addOptionalCharacteristic(platform.Characteristic.ConfiguredName);
     service.setCharacteristic(platform.Characteristic.ConfiguredName, this.valveInfo.name);
   }
 
-  getValveInfo(): ValveConfig {
-    return this.valveInfo;
-  }
-
-  getActiveState(): boolean {
-    return this.state.active ? true : false;
-  }
-
   async getRemainingDuration(): Promise<CharacteristicValue> {
     return this.state.remainingDuration;
   }
 
+  // Helper method to get the active state
+  getActiveState(): boolean {
+    return this.state.active ? true : false;
+  }
+
+  // Simple helper method to get valve information
+  getValveInfo(): ValveConfig {
+    return this.valveInfo;
+  }
+
+  // Used in irrigationSystem.ts in updateValves to make it easy to update the Active characteristic of the valve.
   updateActiveCharacteristic(value: boolean) {
     const updateValue = value ? 1 : 0;
     this.state.active = updateValue;
     this.service.updateCharacteristic(this.platform.Characteristic.Active, updateValue);
   }
 
+  // Used in irrigationSystem.ts in updateValves to make it easy to update the InUse characteristic of the valve.
   updateInUseCharacteristic(value: boolean) {
     const updateValue = value ? 1 : 0;
     this.state.inUse = updateValue;

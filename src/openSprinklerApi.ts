@@ -5,6 +5,7 @@ import { ValveConfig } from './interfaces';
 export class OpenSprinklerApi {
   private password: string;
   private baseUrl: string;
+
   constructor(password: string, host: string) {
     this.password = password;
     this.baseUrl = `http://${host}`;

@@ -5,11 +5,6 @@ import { OpenSprinklerApi } from './openSprinklerApi';
 import { Valve } from './valve';
 import { ValveConfig } from './interfaces';
 
-/**
- * Platform Accessory
- * An instance of this class is created for each accessory your platform registers
- * Each accessory may expose multiple services of different service types.
- */
 export class IrrigationSystem {
   private service: Service;
   private valves: Array<Valve> = [];
@@ -19,22 +14,23 @@ export class IrrigationSystem {
     private readonly accessory: PlatformAccessory,
     private readonly openSprinklerApi: OpenSprinklerApi,
   ) {
-    // set accessory information
+    const characteristic = this.platform.Characteristic;
+
     this.accessory
       .getService(this.platform.Service.AccessoryInformation)!
-      .setCharacteristic(this.platform.Characteristic.Manufacturer, 'OpenSprinkler')
-      .setCharacteristic(this.platform.Characteristic.FirmwareRevision, accessory.context.device.firmwareVersion)
-      .setCharacteristic(this.platform.Characteristic.SerialNumber, accessory.context.device.deviceId || 'No Serial Number')
-      .setCharacteristic(this.platform.Characteristic.Model, accessory.context.device.hardwareVersion);
+      .setCharacteristic(characteristic.Manufacturer, 'OpenSprinkler')
+      .setCharacteristic(characteristic.FirmwareRevision, accessory.context.device.firmwareVersion)
+      .setCharacteristic(characteristic.SerialNumber, accessory.context.device.deviceId || 'No Serial Number')
+      .setCharacteristic(characteristic.Model, accessory.context.device.hardwareVersion);
 
     this.service =
       this.accessory.getService(this.platform.Service.IrrigationSystem) ||
       this.accessory.addService(this.platform.Service.IrrigationSystem);
 
-    this.service.setCharacteristic(this.platform.Characteristic.Name, 'OpenSprinkler');
-    this.service.setCharacteristic(this.platform.Characteristic.Active, this.platform.Characteristic.Active.INACTIVE);
-    this.service.setCharacteristic(this.platform.Characteristic.InUse, this.platform.Characteristic.InUse.NOT_IN_USE);
-    this.service.setCharacteristic(this.platform.Characteristic.ProgramMode, this.platform.Characteristic.ProgramMode.NO_PROGRAM_SCHEDULED);
+    this.service.setCharacteristic(characteristic.Name, 'OpenSprinkler');
+    this.service.setCharacteristic(characteristic.Active, characteristic.Active.INACTIVE);
+    this.service.setCharacteristic(characteristic.InUse, characteristic.InUse.NOT_IN_USE);
+    this.service.setCharacteristic(characteristic.ProgramMode, characteristic.ProgramMode.NO_PROGRAM_SCHEDULED);
 
     this.setUpValves();
 
@@ -65,6 +61,8 @@ export class IrrigationSystem {
     });
   }
 
+  // setInterval above calls this function at the specified interval. The Active and InUse
+  // Characteristics are set here, therefore we don't need onGet and onSet handlers in the Valve class itself.
   updateValves(valveStatuses: Array<Record<string, boolean>>) {
     this.valves.forEach(valve => {
       const valveInfo = valve.getValveInfo();
