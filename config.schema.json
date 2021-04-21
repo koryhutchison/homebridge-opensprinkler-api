@@ -8,20 +8,21 @@
       "name": {
         "title": "Name",
         "type": "string",
-        "required": true,
-        "default": "Homebridge OpenSprinkler"
+        "default": "Homebridge OpenSprinkler",
+        "description": "Used for the Plugin name in the logs"
       },
       "password": {
         "title": "Password",
         "type": "object",
         "required": true,
+        "description": "Define a md5 version of your password or use plain text. One is required."
         "properties": {
           "md5": {
-            "title": "md5 version of your password",
+            "title": "md5",
             "type": "string"
           },
           "plain": {
-            "title": "Plain string version of your password (Will create md5 for you)",
+            "title": "Plain text",
             "type": "string"
           }
         }
@@ -30,12 +31,14 @@
         "title": "Host",
         "type": "string",
         "required": true,
-        "default": "localhost"
+        "default": "localhost",
+        "description": "The host for your system. Most likely an IP address. Don't include http://"
       },
       "pollInterval": {
         "title": "Poll Interval",
         "type": "number",
-        "default": 15
+        "default": 15,
+        "description": "How often to poll for updates"
       },
       "valves": {
         "title": "Valves",
@@ -46,15 +49,18 @@
           "properties": {
             "name": {
               "title": "Name (Must end with a number or letter)",
-              "type": "string"
+              "type": "string",
+              "required": true
             },
             "defaultDuration": {
               "title": "Default Duration (In Seconds)",
-              "type": "number"
+              "type": "number",
+              "required": true
             }
           }
         },
-        "required": true
+        "required": true,
+        "description": "Define these valves in the order they show up in OpenSprinkler"
       }
     }
   }
