@@ -23,7 +23,6 @@ Here are the required and optional parameters you can define in the config:
 
 | Name | Required? | Description |
 | ---- | :-------: | ----------- |
-| `name` |  | This is the name of the plugin in the Homebridge Logs. You can put whatever you want, or don't use it and `platform` will be used instead. |
 | `platform` | ✔️ | This is the name that's used to register the plugin with Homebridge. It needs to be `HomebridgeOpenSprinklerApi`. |
 | `password` | ✔️ | This is how you define your password for your OpenSprikler system. You can either provide it in `md5` form, or in plain text. So `password` would be defined like so if using `md5`: `"password": { "md5": "<hash>" }`. If using a plain text password: `"password": { "plain": "<password>" }`. |
 | `host` | ✔️ | The host of your OpenSprinkler system. For example: `192.168.1.2`. I would recommend using the IP address of the unit instead of a local hostname. |

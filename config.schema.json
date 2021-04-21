@@ -5,12 +5,6 @@
   "schema": {
     "type": "object",
     "properties": {
-      "name": {
-        "title": "Name",
-        "type": "string",
-        "default": "Homebridge OpenSprinkler",
-        "description": "Used for the Plugin name in the logs"
-      },
       "password": {
         "title": "Password",
         "type": "object",
