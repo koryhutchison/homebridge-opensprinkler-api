@@ -63,7 +63,7 @@ export class IrrigationSystem {
 
   // setInterval above calls this function at the specified interval. The Active and InUse
   // Characteristics are set here, therefore we don't need onGet and onSet handlers in the Valve class itself.
-  updateValves(valveStatuses: Array<Record<string, boolean>>) {
+  updateValves(valveStatuses: Record<string, boolean>) {
     this.valves.forEach(valve => {
       const valveInfo = valve.getValveInfo();
 

@@ -22,7 +22,7 @@ export class OpenSprinklerApi {
     };
   }
 
-  async getValveStatus(valveConfig: Array<ValveConfig>): Promise<Array<Record<string, boolean>>> {
+  async getValveStatus(valveConfig: Array<ValveConfig>): Promise<Record<string, boolean>> {
     const { sn } = await this.makeRequest('js');
 
     // Perform Array.slice here because OpenSprinkler may return more valves than the user actually uses
@@ -41,6 +41,7 @@ export class OpenSprinklerApi {
       en: value,
       t: duration,
     };
+
     const { result } = await this.makeRequest('cm', params);
 
     if (result !== 1) {
