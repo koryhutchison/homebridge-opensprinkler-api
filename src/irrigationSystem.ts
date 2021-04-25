@@ -39,7 +39,7 @@ export class IrrigationSystem {
 
     setInterval(async () => {
       try {
-        const valveStatuses = await this.openSprinklerApi.getValveStatus(this.platform.config.valves);
+        const valveStatuses = await this.openSprinklerApi.getEverything(this.platform.config.valves);
         this.updateValves(valveStatuses);
       } catch (error) {
         this.platform.log.error(error);
@@ -63,14 +63,19 @@ export class IrrigationSystem {
 
   // setInterval above calls this function at the specified interval. The Active and InUse
   // Characteristics are set here, therefore we don't need onGet and onSet handlers in the Valve class itself.
-  updateValves(valveStatuses: Record<string, boolean>) {
+  updateValves(valveStatuses: Record<string, Record<string, boolean | number>>) {
     this.valves.forEach(valve => {
       const valveInfo = valve.getValveInfo();
 
-      if (valveStatuses[valveInfo.name] !== valve.getActiveState()) {
-        valve.updateActiveCharacteristic(valveStatuses[valveInfo.name]);
-        valve.updateInUseCharacteristic(valveStatuses[valveInfo.name]);
-        // TODO: Need to update the remainingDuration value here as well
+      if (valveStatuses[valveInfo.name].isActive !== valve.getActiveState()) {
+        valve.updateActiveCharacteristic(valveStatuses[valveInfo.name].isActive as boolean);
+        valve.updateInUseCharacteristic(valveStatuses[valveInfo.name].isActive as boolean);
+        valve.updateRemainingDuration(valveStatuses[valveInfo.name].remainingDuration as number);
+      }
+
+      // If the valve was triggered via HomeKit, then let's make sure the remainingDuration stays up to date
+      if (valve.getManuallyTriggered()) {
+        valve.updateRemainingDuration(valveStatuses[valveInfo.name].remainingDuration as number);
       }
     });
   }

@@ -8,9 +8,11 @@ export class Valve {
     active: 0,
     inUse: 0,
     remainingDuration: 0,
+    manuallyTriggered: false,
   };
 
   private interval!: NodeJS.Timeout;
+  private timeout!: NodeJS.Timeout;
 
   constructor(
     private readonly platform: OpenSprinklerPlatform,
@@ -42,6 +44,11 @@ export class Valve {
     return this.state.active ? true : false;
   }
 
+  // Helper method to get the active state
+  getManuallyTriggered(): boolean {
+    return this.state.manuallyTriggered;
+  }
+
   // Simple helper method to get valve information
   getValveInfo(): ValveConfig {
     return this.valveInfo;
@@ -61,9 +68,26 @@ export class Valve {
     this.service.updateCharacteristic(this.platform.Characteristic.InUse, updateValue);
   }
 
+  // Used in irrigationSystem.ts in updateValves to make it easy to update the InUse characteristic of the valve.
+  updateRemainingDuration(value: number) {
+    this.state.remainingDuration = value;
+    this.service.updateCharacteristic(this.platform.Characteristic.RemainingDuration, value);
+
+    // Be sure to turn the valve off when it's supposed to. Doing manuallyTriggered check here because we only care
+    // about this code when HomeKit is updated via the polling of OpenSprinkler. And this setTimeout will only run
+    // once because of the checks in updateValves in irrigationSystem.ts
+    if (!this.state.manuallyTriggered) {
+      this.timeout = setTimeout(() => {
+        this.service.updateCharacteristic(this.platform.Characteristic.InUse, this.platform.Characteristic.InUse.NOT_IN_USE);
+        this.service.updateCharacteristic(this.platform.Characteristic.Active, this.platform.Characteristic.Active.INACTIVE);
+      }, value * 1000);
+    }
+  }
+
   async setActive(value: CharacteristicValue) {
     this.platform.log.debug(`Setting ${this.valveInfo.name} to a value of ${value}.`);
     this.state.active = value as number;
+    this.state.manuallyTriggered = true;
     this.service.updateCharacteristic(this.platform.Characteristic.Active, value);
 
     try {
@@ -80,13 +104,21 @@ export class Valve {
           this.state.remainingDuration--;
 
           if (this.state.remainingDuration <= 0) {
+            // reset manuallyTriggered
+            this.state.manuallyTriggered = false;
+
             this.service.updateCharacteristic(this.platform.Characteristic.InUse, this.platform.Characteristic.InUse.NOT_IN_USE);
             this.service.updateCharacteristic(this.platform.Characteristic.Active, this.platform.Characteristic.Active.INACTIVE);
             clearInterval(this.interval);
           }
         }, 1000);
       } else {
+        // reset manuallyTriggered
+        this.state.manuallyTriggered = false;
         clearInterval(this.interval);
+
+        // In the case of the user turining off the valve in Homekit when it was activated via OpenSprinker. See updateRemainingDuration.
+        clearTimeout(this.timeout);
       }
     } catch (error) {
       this.platform.log.error(error);

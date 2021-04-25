@@ -22,6 +22,25 @@ export class OpenSprinklerApi {
     };
   }
 
+  async getEverything(valveConfig: Array<ValveConfig>): Promise<Record<string, Record<string, boolean | number>>> {
+    const {
+      status: { sn },
+      settings: { ps },
+    } = await this.makeRequest('ja');
+
+    // Perform Array.slice here because OpenSprinkler may return more valves than the user actually uses
+    const valves = sn.slice(0, valveConfig.length);
+
+    return valves.reduce((obj: Record<string, Record<string, boolean | number>>, valveStatus: number, index: number) => {
+      // The user must define their valve array in the config according to the order in OpenSprinkler
+      obj[valveConfig[index].name] = {
+        isActive: valveStatus ? true : false,
+        remainingDuration: ps[index][1],
+      };
+      return obj;
+    }, {});
+  }
+
   async getValveStatus(valveConfig: Array<ValveConfig>): Promise<Record<string, boolean>> {
     const { sn } = await this.makeRequest('js');
 
