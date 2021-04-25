@@ -63,28 +63,53 @@ describe('OpenSprinklerApi', () => {
     });
   });
 
-  describe('getValveStatus', () => {
+  describe('getEverything', () => {
     test('should return data correctly formatted', async () => {
-      setup({ ok: true, json: () => ({ sn: [1, 0] }) });
+      setup({
+        ok: true,
+        json: () => ({
+          status: { sn: [1, 0] },
+          settings: {
+            ps: [
+              [0, 30, 123456],
+              [1, 0, 123456],
+            ],
+          },
+        }),
+      });
 
       const config = [
         { name: 'Front yard', defaultDuration: 300 },
         { name: 'Back yard', defaultDuration: 300 },
       ];
 
-      const result = await api.getValveStatus(config);
+      const result = await api.getEverything(config);
 
-      expect(result).toStrictEqual({ 'Front yard': true, 'Back yard': false });
+      expect(result).toStrictEqual({
+        'Front yard': { isActive: true, remainingDuration: 30 },
+        'Back yard': { isActive: false, remainingDuration: 0 },
+      });
     });
 
     test('should only return the amount of valves provided in the config', async () => {
-      setup({ ok: true, json: () => ({ sn: [1, 0] }) });
+      setup({
+        ok: true,
+        json: () => ({
+          status: { sn: [1, 0] },
+          settings: {
+            ps: [
+              [0, 30, 123456],
+              [1, 0, 123456],
+            ],
+          },
+        }),
+      });
 
       const config = [{ name: 'Front yard', defaultDuration: 300 }];
 
-      const result = await api.getValveStatus(config);
+      const result = await api.getEverything(config);
 
-      expect(result).toStrictEqual({ 'Front yard': true });
+      expect(result).toStrictEqual({ 'Front yard': { isActive: true, remainingDuration: 30 } });
     });
   });
 
