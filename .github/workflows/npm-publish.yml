@@ -5,11 +5,25 @@ name: Publish Package
 
 on:
   release:
-    types: [created]
+    types: [published]
 
 jobs:
+  publish-beta-npm:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/beta'
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 10 # minimum version required
+          registry-url: https://registry.npmjs.org/
+      - run: npm ci
+      - run: npm publish --tag=beta
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
   publish-npm:
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
