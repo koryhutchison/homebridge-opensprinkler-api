@@ -70,6 +70,7 @@ export class Valve {
 
   // Used in irrigationSystem.ts in updateValves to make it easy to update the InUse characteristic of the valve.
   updateRemainingDuration(value: number) {
+    this.platform.log.debug('Updating remainingDuration with a value of: ' + value);
     this.state.remainingDuration = value;
     this.service.updateCharacteristic(this.platform.Characteristic.RemainingDuration, value);
 
@@ -77,9 +78,14 @@ export class Valve {
     // about this code when HomeKit is updated via the polling of OpenSprinkler. And this setTimeout will only run
     // once because of the checks in updateValves in irrigationSystem.ts
     if (!this.state.manuallyTriggered) {
+      this.platform.log.debug(`Not manuallyTriggered, setting timeout for ${value} seconds`);
       this.timeout = setTimeout(() => {
+        this.platform.log.debug('Called setTimeout');
         this.service.updateCharacteristic(this.platform.Characteristic.InUse, this.platform.Characteristic.InUse.NOT_IN_USE);
         this.service.updateCharacteristic(this.platform.Characteristic.Active, this.platform.Characteristic.Active.INACTIVE);
+        this.state.active = this.platform.Characteristic.Active.INACTIVE;
+        this.state.inUse = this.platform.Characteristic.InUse.NOT_IN_USE;
+        this.state.remainingDuration = 0;
       }, value * 1000);
     }
   }
@@ -94,12 +100,13 @@ export class Valve {
       await this.openSprinklerApi.setValve(value as number, this.valveIndex, this.valveInfo.defaultDuration);
 
       this.state.inUse = value as number;
-      this.state.remainingDuration = this.valveInfo.defaultDuration;
       this.service.updateCharacteristic(this.platform.Characteristic.InUse, value);
-      this.service.updateCharacteristic(this.platform.Characteristic.RemainingDuration, this.valveInfo.defaultDuration);
 
       // If turning on the valve, set interval to track remainingDuration, otherwise, clear the interval
       if (value) {
+        this.state.remainingDuration = this.valveInfo.defaultDuration;
+        this.service.updateCharacteristic(this.platform.Characteristic.RemainingDuration, this.valveInfo.defaultDuration);
+
         this.interval = setInterval(() => {
           this.state.remainingDuration--;
 
@@ -109,12 +116,15 @@ export class Valve {
 
             this.service.updateCharacteristic(this.platform.Characteristic.InUse, this.platform.Characteristic.InUse.NOT_IN_USE);
             this.service.updateCharacteristic(this.platform.Characteristic.Active, this.platform.Characteristic.Active.INACTIVE);
+            this.state.active = this.platform.Characteristic.Active.INACTIVE;
+            this.state.inUse = this.platform.Characteristic.InUse.NOT_IN_USE;
             clearInterval(this.interval);
           }
         }, 1000);
       } else {
         // reset manuallyTriggered
         this.state.manuallyTriggered = false;
+        this.state.remainingDuration = 0;
         clearInterval(this.interval);
 
         // In the case of the user turining off the valve in Homekit when it was activated via OpenSprinker. See updateRemainingDuration.

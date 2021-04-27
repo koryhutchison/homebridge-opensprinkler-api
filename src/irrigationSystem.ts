@@ -68,13 +68,17 @@ export class IrrigationSystem {
       const valveInfo = valve.getValveInfo();
 
       if (valveStatuses[valveInfo.name].isActive !== valve.getActiveState()) {
+        this.platform.log.debug(
+          `Valve: ${valveInfo.name} has a value of ${
+            valveStatuses[valveInfo.name].isActive
+          } from OpenSprinker, but the actual state is ${valve.getActiveState()}`,
+        );
         valve.updateActiveCharacteristic(valveStatuses[valveInfo.name].isActive as boolean);
         valve.updateInUseCharacteristic(valveStatuses[valveInfo.name].isActive as boolean);
         valve.updateRemainingDuration(valveStatuses[valveInfo.name].remainingDuration as number);
-      }
-
-      // If the valve was triggered via HomeKit, then let's make sure the remainingDuration stays up to date
-      if (valve.getManuallyTriggered()) {
+      } else if (valve.getManuallyTriggered()) {
+        this.platform.log.debug('Valve was manually triggred');
+        // If the valve was triggered via HomeKit, then let's make sure the remainingDuration stays up to date
         valve.updateRemainingDuration(valveStatuses[valveInfo.name].remainingDuration as number);
       }
     });
