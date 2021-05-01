@@ -73,6 +73,12 @@ export class IrrigationSystem {
             valveStatuses[valveInfo.name].isActive
           } from OpenSprinker, but the actual state is ${valve.getActiveState()}`,
         );
+
+        // If the status is different, but the valve was manually triggered, then set manuallyTriggered to false
+        if (valve.getManuallyTriggered()) {
+          valve.updateManuallyTriggered(false);
+        }
+
         valve.updateActiveCharacteristic(valveStatuses[valveInfo.name].isActive as boolean);
         valve.updateInUseCharacteristic(valveStatuses[valveInfo.name].isActive as boolean);
         valve.updateRemainingDuration(valveStatuses[valveInfo.name].remainingDuration as number);

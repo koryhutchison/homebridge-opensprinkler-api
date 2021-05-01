@@ -54,6 +54,10 @@ export class Valve {
     return this.valveInfo;
   }
 
+  updateManuallyTriggered(value: boolean) {
+    this.state.manuallyTriggered = value;
+  }
+
   // Used in irrigationSystem.ts in updateValves to make it easy to update the Active characteristic of the valve.
   updateActiveCharacteristic(value: boolean) {
     const updateValue = value ? 1 : 0;
