@@ -63,7 +63,7 @@ describe('OpenSprinklerApi', () => {
     });
   });
 
-  describe('getEverything', () => {
+  describe('getValveStatuses', () => {
     test('should return data correctly formatted', async () => {
       setup({
         ok: true,
@@ -83,7 +83,7 @@ describe('OpenSprinklerApi', () => {
         { name: 'Back yard', defaultDuration: 300 },
       ];
 
-      const result = await api.getEverything(config);
+      const result = await api.getValveStatuses(config);
 
       expect(result).toStrictEqual({
         'Front yard': { isActive: true, remainingDuration: 30 },
@@ -107,7 +107,7 @@ describe('OpenSprinklerApi', () => {
 
       const config = [{ name: 'Front yard', defaultDuration: 300 }];
 
-      const result = await api.getEverything(config);
+      const result = await api.getValveStatuses(config);
 
       expect(result).toStrictEqual({ 'Front yard': { isActive: true, remainingDuration: 30 } });
     });

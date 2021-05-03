@@ -1,6 +1,6 @@
 import fetch from 'node-fetch';
 import { URLSearchParams } from 'url';
-import { ValveConfig } from './interfaces';
+import { ValveConfig, ValveStatuses } from './interfaces';
 
 export class OpenSprinklerApi {
   private password: string;
@@ -22,7 +22,7 @@ export class OpenSprinklerApi {
     };
   }
 
-  async getEverything(valveConfig: Array<ValveConfig>): Promise<Record<string, Record<string, boolean | number>>> {
+  async getValveStatuses(valveConfig: Array<ValveConfig>): Promise<ValveStatuses> {
     const {
       status: { sn },
       settings: { ps },
@@ -31,7 +31,7 @@ export class OpenSprinklerApi {
     // Perform Array.slice here because OpenSprinkler may return more valves than the user actually uses
     const valves = sn.slice(0, valveConfig.length);
 
-    return valves.reduce((obj: Record<string, Record<string, boolean | number>>, valveStatus: number, index: number) => {
+    return valves.reduce((obj: ValveStatuses, valveStatus: number, index: number) => {
       // The user must define their valve array in the config according to the order in OpenSprinkler
       obj[valveConfig[index].name] = {
         isActive: valveStatus ? true : false,
