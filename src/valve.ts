@@ -10,8 +10,6 @@ export class Valve {
     remainingDuration: 0,
   };
 
-  private interval!: NodeJS.Timeout;
-
   constructor(
     private readonly platform: OpenSprinklerPlatform,
     private readonly service: Service,
@@ -47,22 +45,39 @@ export class Valve {
     return this.valveInfo;
   }
 
-  // Used in irrigationSystem.ts in updateValves to make it easy to update the Active characteristic of the valve.
-  updateActiveCharacteristic(value: boolean) {
+  async openSprinklerActivate(isActive: boolean, inUse: boolean, remainingDuration: number) {
+    await this.updateActiveCharacteristic(isActive);
+    await this.updateInUseCharacteristic(inUse);
+    this.updateRemainingDuration(remainingDuration);
+  }
+
+  async openSprinklerDeactivate(isActive: boolean, inUse: boolean) {
+    await this.updateActiveCharacteristic(isActive);
+    await this.updateInUseCharacteristic(inUse);
+    this.updateRemainingDuration(0);
+  }
+
+  private async updateActiveCharacteristic(value: boolean) {
     const updateValue = value ? 1 : 0;
     this.state.active = updateValue;
     this.service.updateCharacteristic(this.platform.Characteristic.Active, updateValue);
   }
 
-  // Used in irrigationSystem.ts in updateValves to make it easy to update the InUse characteristic of the valve.
-  updateInUseCharacteristic(value: boolean) {
+  private async updateInUseCharacteristic(value: boolean) {
     const updateValue = value ? 1 : 0;
     this.state.inUse = updateValue;
     this.service.updateCharacteristic(this.platform.Characteristic.InUse, updateValue);
   }
 
+  updateRemainingDuration(value: number) {
+    this.platform.log.debug(`Updating remainingDuration on the ${this.valveInfo.name} valve with a value of: ${value}`);
+    this.state.remainingDuration = value;
+    this.service.updateCharacteristic(this.platform.Characteristic.RemainingDuration, value);
+  }
+
   async setActive(value: CharacteristicValue) {
     this.platform.log.debug(`Setting ${this.valveInfo.name} to a value of ${value}.`);
+
     this.state.active = value as number;
     this.service.updateCharacteristic(this.platform.Characteristic.Active, value);
 
@@ -70,23 +85,13 @@ export class Valve {
       await this.openSprinklerApi.setValve(value as number, this.valveIndex, this.valveInfo.defaultDuration);
 
       this.state.inUse = value as number;
-      this.state.remainingDuration = this.valveInfo.defaultDuration;
       this.service.updateCharacteristic(this.platform.Characteristic.InUse, value);
-      this.service.updateCharacteristic(this.platform.Characteristic.RemainingDuration, this.valveInfo.defaultDuration);
 
-      // If turning on the valve, set interval to track remainingDuration, otherwise, clear the interval
+      // If turning on the valve, set the remainingDuration. Otherwise, set it to zero
       if (value) {
-        this.interval = setInterval(() => {
-          this.state.remainingDuration--;
-
-          if (this.state.remainingDuration <= 0) {
-            this.service.updateCharacteristic(this.platform.Characteristic.InUse, this.platform.Characteristic.InUse.NOT_IN_USE);
-            this.service.updateCharacteristic(this.platform.Characteristic.Active, this.platform.Characteristic.Active.INACTIVE);
-            clearInterval(this.interval);
-          }
-        }, 1000);
+        this.updateRemainingDuration(this.valveInfo.defaultDuration);
       } else {
-        clearInterval(this.interval);
+        this.updateRemainingDuration(0);
       }
     } catch (error) {
       this.platform.log.error(error);

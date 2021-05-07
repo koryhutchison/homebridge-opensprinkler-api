@@ -3,7 +3,7 @@ import { Service, PlatformAccessory } from 'homebridge';
 import { OpenSprinklerPlatform } from './platform';
 import { OpenSprinklerApi } from './openSprinklerApi';
 import { Valve } from './valve';
-import { ValveConfig } from './interfaces';
+import { ValveConfig, ValveStatuses } from './interfaces';
 
 export class IrrigationSystem {
   private service: Service;
@@ -39,10 +39,10 @@ export class IrrigationSystem {
 
     setInterval(async () => {
       try {
-        const valveStatuses = await this.openSprinklerApi.getValveStatus(this.platform.config.valves);
+        const valveStatuses = await this.openSprinklerApi.getValveStatuses(this.platform.config.valves);
         this.updateValves(valveStatuses);
       } catch (error) {
-        this.platform.log.error(error);
+        this.platform.log.error(`Failed to get valve statuses. Message: ${error.message}`);
       }
     }, pollInterval * 1000);
   }
@@ -63,14 +63,27 @@ export class IrrigationSystem {
 
   // setInterval above calls this function at the specified interval. The Active and InUse
   // Characteristics are set here, therefore we don't need onGet and onSet handlers in the Valve class itself.
-  updateValves(valveStatuses: Record<string, boolean>) {
+  updateValves(valveStatuses: ValveStatuses) {
     this.valves.forEach(valve => {
       const valveInfo = valve.getValveInfo();
+      const openSprinklerValveIsActive = valveStatuses[valveInfo.name].isActive;
+      const openSprinklerRemainingDuration = valveStatuses[valveInfo.name].remainingDuration;
 
-      if (valveStatuses[valveInfo.name] !== valve.getActiveState()) {
-        valve.updateActiveCharacteristic(valveStatuses[valveInfo.name]);
-        valve.updateInUseCharacteristic(valveStatuses[valveInfo.name]);
-        // TODO: Need to update the remainingDuration value here as well
+      if (openSprinklerValveIsActive !== valve.getActiveState()) {
+        this.platform.log.debug(
+          `Valve: ${
+            valveInfo.name
+          } has a value of ${openSprinklerValveIsActive} from OpenSprinker, but the state in HomeKit is ${valve.getActiveState()}`,
+        );
+
+        if (openSprinklerValveIsActive) {
+          valve.openSprinklerActivate(true, true, openSprinklerRemainingDuration);
+        } else {
+          valve.openSprinklerDeactivate(false, false);
+        }
+      } else if (valve.getActiveState()) {
+        // Keep the duration up to date
+        valve.updateRemainingDuration(openSprinklerRemainingDuration);
       }
     });
   }
