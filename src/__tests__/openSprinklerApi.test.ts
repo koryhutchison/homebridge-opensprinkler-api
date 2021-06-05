@@ -63,7 +63,7 @@ describe('OpenSprinklerApi', () => {
     });
   });
 
-  describe('getValveStatuses', () => {
+  describe('getSystemStatus', () => {
     test('should return data correctly formatted', async () => {
       setup({
         ok: true,
@@ -74,6 +74,7 @@ describe('OpenSprinklerApi', () => {
               [0, 30, 123456],
               [1, 0, 123456],
             ],
+            rd: 0,
           },
         }),
       });
@@ -83,12 +84,13 @@ describe('OpenSprinklerApi', () => {
         { name: 'Back yard', defaultDuration: 300 },
       ];
 
-      const result = await api.getValveStatuses(config);
+      const { valveStatuses, rainDelay } = await api.getSystemStatus(config);
 
-      expect(result).toStrictEqual({
+      expect(valveStatuses).toStrictEqual({
         'Front yard': { isActive: true, remainingDuration: 30 },
         'Back yard': { isActive: false, remainingDuration: 0 },
       });
+      expect(rainDelay).toEqual(false);
     });
 
     test('should only return the amount of valves provided in the config', async () => {
@@ -101,15 +103,38 @@ describe('OpenSprinklerApi', () => {
               [0, 30, 123456],
               [1, 0, 123456],
             ],
+            rd: 0,
           },
         }),
       });
 
       const config = [{ name: 'Front yard', defaultDuration: 300 }];
 
-      const result = await api.getValveStatuses(config);
+      const { valveStatuses } = await api.getSystemStatus(config);
 
-      expect(result).toStrictEqual({ 'Front yard': { isActive: true, remainingDuration: 30 } });
+      expect(valveStatuses).toStrictEqual({ 'Front yard': { isActive: true, remainingDuration: 30 } });
+    });
+
+    test('should return true for RainDelay if value is 1', async () => {
+      setup({
+        ok: true,
+        json: () => ({
+          status: { sn: [1, 0] },
+          settings: {
+            ps: [
+              [0, 30, 123456],
+              [1, 0, 123456],
+            ],
+            rd: 1,
+          },
+        }),
+      });
+
+      const config = [{ name: 'Front yard', defaultDuration: 300 }];
+
+      const { rainDelay } = await api.getSystemStatus(config);
+
+      expect(rainDelay).toEqual(true);
     });
   });
 
