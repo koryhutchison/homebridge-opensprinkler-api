@@ -10,7 +10,6 @@ export class IrrigationSystem {
   private service: Service;
   private valves: Array<Valve> = [];
   private rainDelaySwitch!: RainDelay;
-  private rainDelayService!: Service;
 
   constructor(
     private readonly platform: OpenSprinklerPlatform,
