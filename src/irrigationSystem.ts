@@ -10,6 +10,7 @@ export class IrrigationSystem {
   private service: Service;
   private valves: Array<Valve> = [];
   private rainDelaySwitch!: RainDelay;
+  private rainDelayService!: Service;
 
   constructor(
     private readonly platform: OpenSprinklerPlatform,
@@ -35,11 +36,7 @@ export class IrrigationSystem {
     this.service.setCharacteristic(characteristic.ProgramMode, characteristic.ProgramMode.NO_PROGRAM_SCHEDULED);
 
     this.setUpValves();
-
-    // Set up rain delay switch only if the value is provided in the config
-    if (this.platform.config.rainDelay) {
-      this.setUpRainDelay();
-    }
+    this.setUpRainDelay();
 
     // If pollInterval isn't defined in the config, set it to the default of 15 seconds
     const pollInterval = this.platform.config.pollInterval || 15;
@@ -74,8 +71,19 @@ export class IrrigationSystem {
   }
 
   setUpRainDelay() {
-    const service = this.accessory.getService(this.platform.Service.Switch) || this.accessory.addService(this.platform.Service.Switch);
-    this.rainDelaySwitch = new RainDelay(this.platform, service, this.openSprinklerApi);
+    // See if the service exists
+    let service = this.accessory.getService(this.platform.Service.Switch);
+
+    // If rain delay is set, let's set up the switch
+    if (this.platform.config.rainDelay) {
+      // If service is undefined, add the service to the accessory
+      if (!service) {
+        service = this.accessory.addService(this.platform.Service.Switch);
+      }
+      this.rainDelaySwitch = new RainDelay(this.platform, service, this.openSprinklerApi);
+    } else if (service) {
+      this.accessory.removeService(service);
+    }
   }
 
   // setInterval above calls this function at the specified interval. The Active and InUse
