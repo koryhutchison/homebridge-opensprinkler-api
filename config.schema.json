@@ -34,6 +34,12 @@
         "default": 15,
         "description": "How often to poll for updates"
       },
+      "rainDelay": {
+        "title": "Rain Delay",
+        "type": "number",
+        "default": 24,
+        "description": "The number of hours rain delays will be"
+      },
       "valves": {
         "title": "Valves",
         "type": "array",

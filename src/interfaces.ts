@@ -11,3 +11,8 @@ interface ValveStatus {
   isActive: boolean;
   remainingDuration: number;
 }
+
+export interface SystemStatus {
+  valveStatuses: ValveStatuses;
+  rainDelay: boolean;
+}

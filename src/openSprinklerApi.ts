@@ -1,6 +1,6 @@
 import fetch from 'node-fetch';
 import { URLSearchParams } from 'url';
-import { ValveConfig, ValveStatuses } from './interfaces';
+import { ValveConfig, ValveStatuses, SystemStatus } from './interfaces';
 
 export class OpenSprinklerApi {
   private password: string;
@@ -22,16 +22,16 @@ export class OpenSprinklerApi {
     };
   }
 
-  async getValveStatuses(valveConfig: Array<ValveConfig>): Promise<ValveStatuses> {
+  async getSystemStatus(valveConfig: Array<ValveConfig>): Promise<SystemStatus> {
     const {
       status: { sn },
-      settings: { ps },
+      settings: { ps, rd },
     } = await this.makeRequest('ja');
 
     // Perform Array.slice here because OpenSprinkler may return more valves than the user actually uses
     const valves = sn.slice(0, valveConfig.length);
 
-    return valves.reduce((obj: ValveStatuses, valveStatus: number, index: number) => {
+    const valveStatuses = valves.reduce((obj: ValveStatuses, valveStatus: number, index: number) => {
       // The user must define their valve array in the config according to the order in OpenSprinkler
       obj[valveConfig[index].name] = {
         isActive: valveStatus ? true : false,
@@ -39,6 +39,23 @@ export class OpenSprinklerApi {
       };
       return obj;
     }, {});
+
+    return {
+      valveStatuses,
+      rainDelay: !!rd,
+    };
+  }
+
+  async setRainDelay(time: number) {
+    const params = {
+      rd: time,
+    };
+
+    const { result } = await this.makeRequest('cv', params);
+
+    if (result !== 1) {
+      throw new Error('Failed to set rain delay');
+    }
   }
 
   async setValve(value: number, index: number, duration: number) {

@@ -3,11 +3,13 @@ import { Service, PlatformAccessory } from 'homebridge';
 import { OpenSprinklerPlatform } from './platform';
 import { OpenSprinklerApi } from './openSprinklerApi';
 import { Valve } from './valve';
+import { RainDelay } from './rainDelay';
 import { ValveConfig, ValveStatuses } from './interfaces';
 
 export class IrrigationSystem {
   private service: Service;
   private valves: Array<Valve> = [];
+  private rainDelaySwitch!: RainDelay;
 
   constructor(
     private readonly platform: OpenSprinklerPlatform,
@@ -33,14 +35,20 @@ export class IrrigationSystem {
     this.service.setCharacteristic(characteristic.ProgramMode, characteristic.ProgramMode.NO_PROGRAM_SCHEDULED);
 
     this.setUpValves();
+    this.setUpRainDelay();
 
     // If pollInterval isn't defined in the config, set it to the default of 15 seconds
     const pollInterval = this.platform.config.pollInterval || 15;
 
     setInterval(async () => {
       try {
-        const valveStatuses = await this.openSprinklerApi.getValveStatuses(this.platform.config.valves);
+        const { valveStatuses, rainDelay } = await this.openSprinklerApi.getSystemStatus(this.platform.config.valves);
         this.updateValves(valveStatuses);
+
+        // Only run if rain delay is set.
+        if (this.platform.config.rainDelay) {
+          this.rainDelaySwitch.updateOnState(rainDelay);
+        }
       } catch (error) {
         this.platform.log.error(`Failed to get valve statuses. Message: ${error.message}`);
       }
@@ -59,6 +67,22 @@ export class IrrigationSystem {
 
       this.valves.push(valveInstance);
     });
+  }
+
+  setUpRainDelay() {
+    // See if the service exists
+    let service = this.accessory.getService(this.platform.Service.Switch);
+
+    // If rain delay is set, let's set up the switch
+    if (this.platform.config.rainDelay) {
+      // If service is undefined, add the service to the accessory
+      if (!service) {
+        service = this.accessory.addService(this.platform.Service.Switch);
+      }
+      this.rainDelaySwitch = new RainDelay(this.platform, service, this.openSprinklerApi);
+    } else if (service) {
+      this.accessory.removeService(service);
+    }
   }
 
   // setInterval above calls this function at the specified interval. The Active and InUse
