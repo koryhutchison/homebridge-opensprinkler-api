@@ -34,8 +34,12 @@ export class IrrigationSystem {
     this.service.setCharacteristic(characteristic.InUse, characteristic.InUse.NOT_IN_USE);
     this.service.setCharacteristic(characteristic.ProgramMode, characteristic.ProgramMode.NO_PROGRAM_SCHEDULED);
 
-    this.setUpValves();
-    this.setUpRainDelay();
+    try {
+      this.setUpValves();
+      this.setUpRainDelay();
+    } catch (error) {
+      this.platform.log.error(error.message);
+    }
 
     // If pollInterval isn't defined in the config, set it to the default of 15 seconds
     const pollInterval = this.platform.config.pollInterval || 15;
