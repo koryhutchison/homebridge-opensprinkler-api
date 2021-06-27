@@ -52,8 +52,8 @@ export class OpenSprinklerPlatform implements DynamicPlatformPlugin {
   }
 
   verifyConfig() {
-    if (this.config.passord) {
-      if (!this.config.passord.md5 && !this.config.passord.plain) {
+    if (this.config.password) {
+      if (!this.config.password.md5 && !this.config.password.plain) {
         throw new Error('md5 or plain need to be specified in the password portion of the config');
       }
     } else {
