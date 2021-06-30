@@ -94,7 +94,7 @@ export class Valve {
         this.updateRemainingDuration(0);
       }
     } catch (error) {
-      this.platform.log.error(error);
+      this.platform.log.error(error.message);
     }
   }
 }

@@ -3,16 +3,25 @@ import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig, 
 import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
 import { IrrigationSystem } from './irrigationSystem';
 import { OpenSprinklerApi } from './openSprinklerApi';
+import { ValveConfig } from './interfaces';
 import md5 from 'md5';
 
 export class OpenSprinklerPlatform implements DynamicPlatformPlugin {
   public readonly Service: typeof Service = this.api.hap.Service;
   public readonly Characteristic: typeof Characteristic = this.api.hap.Characteristic;
   public readonly accessories: PlatformAccessory[] = [];
-  private readonly openSprinklerApi: OpenSprinklerApi;
+  private readonly openSprinklerApi!: OpenSprinklerApi;
 
   constructor(public readonly log: Logger, public readonly config: PlatformConfig, public readonly api: API) {
     this.log.debug('Finished initializing platform:', this.config.platform);
+
+    try {
+      this.verifyConfig();
+      this.log.debug('Config set up correctly');
+    } catch (error) {
+      this.log.error(error.message);
+      return;
+    }
 
     const password = this.config.password.plain ? md5(this.config.password.plain) : this.config.password.md5;
 
@@ -39,6 +48,33 @@ export class OpenSprinklerPlatform implements DynamicPlatformPlugin {
       this.createIrrigationSystem(firmwareVersion, hardwareVersion, deviceId);
     } catch (error) {
       this.log.error(error);
+    }
+  }
+
+  verifyConfig() {
+    if (this.config.password) {
+      if (!this.config.password.md5 && !this.config.password.plain) {
+        throw new Error('md5 or plain need to be specified in the password portion of the config');
+      }
+    } else {
+      throw new Error('password is missing from the config');
+    }
+
+    if (!this.config.host) {
+      throw new Error('host is missing from the config');
+    }
+
+    if (this.config.valves) {
+      this.config.valves.forEach((valve: ValveConfig, index: number) => {
+        if (!valve.name) {
+          throw new Error(`name is missing from the valve at position: ${index}`);
+        }
+        if (!valve.defaultDuration) {
+          throw new Error(`defaultDuration is missing from the valve at position: ${index}`);
+        }
+      });
+    } else {
+      throw new Error('valves are missing from the config');
     }
   }
 

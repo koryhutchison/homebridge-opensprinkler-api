@@ -29,7 +29,7 @@ export class RainDelay {
         this.status = false;
       }
     } catch (error) {
-      this.platform.log.error(error);
+      this.platform.log.error(error.message);
     }
 
     this.service.updateCharacteristic(this.platform.Characteristic.On, value);
