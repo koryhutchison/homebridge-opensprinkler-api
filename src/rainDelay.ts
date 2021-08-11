@@ -13,6 +13,7 @@ export class RainDelay {
     this.service.setCharacteristic(this.platform.Characteristic.Name, 'Rain Delay');
     this.service.setCharacteristic(this.platform.Characteristic.On, false);
     this.service.getCharacteristic(platform.Characteristic.On).onSet(this.setOn.bind(this));
+    this.service.getCharacteristic(platform.Characteristic.On).onGet(this.getOn.bind(this));
 
     // Set the inital state to be off
     this.status = false;
@@ -33,6 +34,10 @@ export class RainDelay {
     }
 
     this.service.updateCharacteristic(this.platform.Characteristic.On, value);
+  }
+
+  async getOn(): Promise<CharacteristicValue> {
+    return this.status;
   }
 
   updateOnState(value: boolean) {

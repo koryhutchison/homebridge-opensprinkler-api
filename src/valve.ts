@@ -24,6 +24,8 @@ export class Valve {
     service.setCharacteristic(platform.Characteristic.SetDuration, valveInfo.defaultDuration);
 
     service.getCharacteristic(platform.Characteristic.Active).onSet(this.setActive.bind(this));
+    service.getCharacteristic(platform.Characteristic.Active).onGet(this.getActive.bind(this));
+    service.getCharacteristic(platform.Characteristic.InUse).onGet(this.getInUse.bind(this));
     service.getCharacteristic(platform.Characteristic.RemainingDuration).onGet(this.getRemainingDuration.bind(this));
 
     // Add optional characteristic so that valve names actually show up in Home App
@@ -33,6 +35,14 @@ export class Valve {
 
   async getRemainingDuration(): Promise<CharacteristicValue> {
     return this.state.remainingDuration;
+  }
+
+  async getActive(): Promise<CharacteristicValue> {
+    return this.state.active;
+  }
+
+  async getInUse(): Promise<CharacteristicValue> {
+    return this.state.inUse;
   }
 
   // Helper method to get the active state
