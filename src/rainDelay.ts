@@ -31,6 +31,7 @@ export class RainDelay {
       }
     } catch (error) {
       this.platform.log.error(error.message);
+      throw new this.platform.api.hap.HapStatusError(-70402); // Display error in HomeKit
     }
 
     this.service.updateCharacteristic(this.platform.Characteristic.On, value);

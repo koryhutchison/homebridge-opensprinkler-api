@@ -105,6 +105,7 @@ export class Valve {
       }
     } catch (error) {
       this.platform.log.error(error.message);
+      throw new this.platform.api.hap.HapStatusError(-70402); // Display error in HomeKit
     }
   }
 }
