@@ -30,7 +30,7 @@ export class RainDelay {
         this.status = false;
       }
     } catch (error) {
-      this.platform.log.error(error.message);
+      this.platform.log.error((error as Error).message);
       throw new this.platform.api.hap.HapStatusError(-70402); // Display error in HomeKit
     }
 

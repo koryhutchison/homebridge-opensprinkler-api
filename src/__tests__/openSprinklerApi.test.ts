@@ -156,22 +156,28 @@ describe('OpenSprinklerApi', () => {
     });
 
     test('should return correct message on failure', async () => {
+      expect.assertions(1);
       setup({ ok: true, json: () => ({ result: 2 }) });
 
       try {
         await api.setValve(0, 0, 300);
       } catch (error) {
-        expect(error.message).toEqual('Failed to set valve');
+        if (error instanceof Error) {
+          expect(error.message).toEqual('Failed to set valve');
+        }
       }
     });
 
     test('should return correct message on fetch failure', async () => {
+      expect.assertions(1);
       setup({ ok: false, status: 500, text: () => 'Some error message' });
 
       try {
         await api.setValve(0, 0, 300);
       } catch (error) {
-        expect(error.message).toEqual('Request to cm failed. Status Code: 500 Message: Some error message');
+        if (error instanceof Error) {
+          expect(error.message).toEqual('Request to cm failed. Status Code: 500 Message: Some error message');
+        }
       }
     });
   });
