@@ -19,7 +19,7 @@ export class OpenSprinklerPlatform implements DynamicPlatformPlugin {
       this.verifyConfig();
       this.log.debug('Config set up correctly');
     } catch (error) {
-      this.log.error(error.message);
+      this.log.error((error as Error).message);
       return;
     }
 
@@ -47,7 +47,7 @@ export class OpenSprinklerPlatform implements DynamicPlatformPlugin {
       const { firmwareVersion, hardwareVersion, deviceId } = await this.openSprinklerApi.getInfo();
       this.createIrrigationSystem(firmwareVersion, hardwareVersion, deviceId);
     } catch (error) {
-      this.log.error(error);
+      this.log.error((error as Error).message);
     }
   }
 

@@ -38,7 +38,7 @@ export class IrrigationSystem {
       this.setUpValves();
       this.setUpRainDelay();
     } catch (error) {
-      this.platform.log.error(error.message);
+      this.platform.log.error((error as Error).message);
     }
 
     // If pollInterval isn't defined in the config, set it to the default of 15 seconds
@@ -54,7 +54,7 @@ export class IrrigationSystem {
           this.rainDelaySwitch.updateOnState(rainDelay);
         }
       } catch (error) {
-        this.platform.log.error(`Failed to get valve statuses. Message: ${error.message}`);
+        this.platform.log.error(`Failed to get valve statuses. Message: ${(error as Error).message}`);
       }
     }, pollInterval * 1000);
   }
