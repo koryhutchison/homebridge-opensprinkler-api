@@ -8,7 +8,7 @@ export class Valve {
     active: 0,
     inUse: 0,
     remainingDuration: 0,
-    duration: 0
+    duration: 0,
   };
 
   constructor(
