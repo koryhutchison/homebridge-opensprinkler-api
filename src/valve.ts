@@ -25,7 +25,7 @@ export class Valve {
     service.setCharacteristic(platform.Characteristic.SetDuration, valveInfo.defaultDuration);
 
     service.getCharacteristic(platform.Characteristic.Active).onSet(this.setActive.bind(this));
-    service.getCharacteristic(platform.Characteristic.Active).onSet(this.setDuration.bind(this));
+    service.getCharacteristic(platform.Characteristic.SetDuration).onSet(this.setDuration.bind(this));
 
     service.getCharacteristic(platform.Characteristic.Active).onGet(this.getActive.bind(this));
     service.getCharacteristic(platform.Characteristic.InUse).onGet(this.getInUse.bind(this));
@@ -122,6 +122,7 @@ export class Valve {
 
   setDuration(value: CharacteristicValue) {
     this.platform.log.debug(`Updating the default duration to a value of ${value} seconds.`);
+    this.service.updateCharacteristic(this.platform.Characteristic.SetDuration, value);
     this.state.duration = value as number;
   }
 }
