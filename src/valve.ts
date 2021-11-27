@@ -8,6 +8,7 @@ export class Valve {
     active: 0,
     inUse: 0,
     remainingDuration: 0,
+    duration: 0,
   };
 
   constructor(
@@ -24,17 +25,27 @@ export class Valve {
     service.setCharacteristic(platform.Characteristic.SetDuration, valveInfo.defaultDuration);
 
     service.getCharacteristic(platform.Characteristic.Active).onSet(this.setActive.bind(this));
+    service.getCharacteristic(platform.Characteristic.SetDuration).onSet(this.setDuration.bind(this));
+
     service.getCharacteristic(platform.Characteristic.Active).onGet(this.getActive.bind(this));
     service.getCharacteristic(platform.Characteristic.InUse).onGet(this.getInUse.bind(this));
     service.getCharacteristic(platform.Characteristic.RemainingDuration).onGet(this.getRemainingDuration.bind(this));
+    service.getCharacteristic(platform.Characteristic.SetDuration).onGet(this.getDuration.bind(this));
 
     // Add optional characteristic so that valve names actually show up in Home App
     service.addOptionalCharacteristic(platform.Characteristic.ConfiguredName);
     service.setCharacteristic(platform.Characteristic.ConfiguredName, this.valveInfo.name);
+
+    // Set the duration in the state to the default value
+    this.state.duration = this.valveInfo.defaultDuration;
   }
 
   async getRemainingDuration(): Promise<CharacteristicValue> {
     return this.state.remainingDuration;
+  }
+
+  async getDuration(): Promise<CharacteristicValue> {
+    return this.state.duration;
   }
 
   async getActive(): Promise<CharacteristicValue> {
@@ -92,14 +103,14 @@ export class Valve {
     this.service.updateCharacteristic(this.platform.Characteristic.Active, value);
 
     try {
-      await this.openSprinklerApi.setValve(value as number, this.valveIndex, this.valveInfo.defaultDuration);
+      await this.openSprinklerApi.setValve(value as number, this.valveIndex, this.state.duration);
 
       this.state.inUse = value as number;
       this.service.updateCharacteristic(this.platform.Characteristic.InUse, value);
 
       // If turning on the valve, set the remainingDuration. Otherwise, set it to zero
       if (value) {
-        this.updateRemainingDuration(this.valveInfo.defaultDuration);
+        this.updateRemainingDuration(this.state.duration);
       } else {
         this.updateRemainingDuration(0);
       }
@@ -107,5 +118,11 @@ export class Valve {
       this.platform.log.error((error as Error).message);
       throw new this.platform.api.hap.HapStatusError(-70402); // Display error in HomeKit
     }
+  }
+
+  setDuration(value: CharacteristicValue) {
+    this.platform.log.debug(`Updating the default duration to a value of ${value} seconds.`);
+    this.service.updateCharacteristic(this.platform.Characteristic.SetDuration, value);
+    this.state.duration = value as number;
   }
 }
