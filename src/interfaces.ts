@@ -15,4 +15,5 @@ interface ValveStatus {
 export interface SystemStatus {
   valveStatuses: ValveStatuses;
   rainDelay: boolean;
+  programStatus: string;
 }
