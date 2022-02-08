@@ -76,6 +76,7 @@ describe('OpenSprinklerApi', () => {
             ],
             rd: 0,
           },
+          programs: { pd: [[0]] },
         }),
       });
 
@@ -84,13 +85,14 @@ describe('OpenSprinklerApi', () => {
         { name: 'Back yard', defaultDuration: 300 },
       ];
 
-      const { valveStatuses, rainDelay } = await api.getSystemStatus(config);
+      const { valveStatuses, rainDelay, programStatus } = await api.getSystemStatus(config);
 
       expect(valveStatuses).toStrictEqual({
         'Front yard': { isActive: true, remainingDuration: 30 },
         'Back yard': { isActive: false, remainingDuration: 0 },
       });
       expect(rainDelay).toEqual(false);
+      expect(programStatus).toEqual('off');
     });
 
     test('should only return the amount of valves provided in the config', async () => {
@@ -105,6 +107,7 @@ describe('OpenSprinklerApi', () => {
             ],
             rd: 0,
           },
+          programs: { pd: [[0]] },
         }),
       });
 
@@ -127,6 +130,7 @@ describe('OpenSprinklerApi', () => {
             ],
             rd: 1,
           },
+          programs: { pd: [[0]] },
         }),
       });
 
@@ -135,6 +139,52 @@ describe('OpenSprinklerApi', () => {
       const { rainDelay } = await api.getSystemStatus(config);
 
       expect(rainDelay).toEqual(true);
+    });
+
+    test('should set program status to scheduled if the first bit is 1', async () => {
+      setup({
+        ok: true,
+        json: () => ({
+          status: { sn: [1, 0] },
+          settings: {
+            ps: [
+              [0, 30, 123456],
+              [1, 0, 123456],
+            ],
+            rd: 1,
+          },
+          programs: { pd: [[49]] },
+        }),
+      });
+
+      const config = [{ name: 'Front yard', defaultDuration: 300 }];
+
+      const { programStatus } = await api.getSystemStatus(config);
+
+      expect(programStatus).toEqual('scheduled');
+    });
+
+    test('should set program status to manual if the first program is program 99', async () => {
+      setup({
+        ok: true,
+        json: () => ({
+          status: { sn: [1, 0] },
+          settings: {
+            ps: [
+              [99, 30, 123456],
+              [1, 0, 123456],
+            ],
+            rd: 1,
+          },
+          programs: { pd: [[49]] },
+        }),
+      });
+
+      const config = [{ name: 'Front yard', defaultDuration: 300 }];
+
+      const { programStatus } = await api.getSystemStatus(config);
+
+      expect(programStatus).toEqual('manual');
     });
   });
 
