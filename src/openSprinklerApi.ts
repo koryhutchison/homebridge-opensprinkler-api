@@ -43,7 +43,8 @@ export class OpenSprinklerApi {
 
     const programScheduled = pd.some((program: Array<number>) => {
       // This checks the first bit of the program flag and this will evaluate to true
-      // when it's enabled. See here: https://github.com/OpenSprinkler/OpenSprinkler-App/blob/6116c514cbf3a5f25613ab6dbad8ddafc00ceec1/www/js/main.js#L8408
+      // when it's enabled. See here:
+      // https://github.com/OpenSprinkler/OpenSprinkler-App/blob/6116c514cbf3a5f25613ab6dbad8ddafc00ceec1/www/js/main.js#L8408
       return Boolean((program[0] >> 0) & 1);
     });
 
