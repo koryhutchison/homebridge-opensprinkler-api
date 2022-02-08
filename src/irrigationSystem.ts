@@ -31,7 +31,7 @@ export class IrrigationSystem {
       this.accessory.addService(this.platform.Service.IrrigationSystem);
 
     this.service.setCharacteristic(characteristic.Name, 'OpenSprinkler');
-    this.service.setCharacteristic(characteristic.Active, characteristic.Active.ACTIVE);
+    this.service.setCharacteristic(characteristic.Active, characteristic.Active.INACTIVE);
     this.service.setCharacteristic(characteristic.InUse, characteristic.InUse.NOT_IN_USE);
     this.service.setCharacteristic(characteristic.ProgramMode, characteristic.ProgramMode.NO_PROGRAM_SCHEDULED);
 
@@ -128,12 +128,16 @@ export class IrrigationSystem {
   updateProgramMode(programStatus: string) {
     this.platform.log.debug(`Setting program mode: ${programStatus}`);
     const programMode = this.platform.Characteristic.ProgramMode;
+    const active = this.platform.Characteristic.Active;
     this.programStatus = programStatus;
     if (programStatus === 'manual') {
+      this.service.updateCharacteristic(active, active.ACTIVE);
       this.service.updateCharacteristic(programMode, programMode.PROGRAM_SCHEDULED_MANUAL_MODE_);
     } else if (programStatus === 'scheduled') {
+      this.service.updateCharacteristic(active, active.ACTIVE);
       this.service.updateCharacteristic(programMode, programMode.PROGRAM_SCHEDULED);
     } else {
+      this.service.updateCharacteristic(active, active.INACTIVE);
       this.service.updateCharacteristic(programMode, programMode.NO_PROGRAM_SCHEDULED);
     }
   }
