@@ -49,7 +49,11 @@ export class OpenSprinklerApi {
     });
 
     // OpenSprinkler sets the program id to 99 if it's a manually triggered valve
-    const programStatus = ps[0][0] === 99 ? 'manual' : programScheduled ? 'scheduled' : 'off';
+    const isManual = ps.some((valve: Array<number>) => {
+      return valve[0] === 99;
+    });
+
+    const programStatus = isManual ? 'manual' : programScheduled ? 'scheduled' : 'off';
 
     return {
       valveStatuses,

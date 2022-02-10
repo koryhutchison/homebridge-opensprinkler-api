@@ -164,7 +164,7 @@ describe('OpenSprinklerApi', () => {
       expect(programStatus).toEqual('scheduled');
     });
 
-    test('should set program status to manual if the first program is program 99', async () => {
+    test('should set program status to manual if the first valve is set to program ID 99', async () => {
       setup({
         ok: true,
         json: () => ({
@@ -173,6 +173,31 @@ describe('OpenSprinklerApi', () => {
             ps: [
               [99, 30, 123456],
               [1, 0, 123456],
+            ],
+            rd: 1,
+          },
+          programs: { pd: [[49]] },
+        }),
+      });
+
+      const config = [{ name: 'Front yard', defaultDuration: 300 }];
+
+      const { programStatus } = await api.getSystemStatus(config);
+
+      expect(programStatus).toEqual('manual');
+    });
+
+    test('should set program status to manual if the 4th valve is set to program ID 99', async () => {
+      setup({
+        ok: true,
+        json: () => ({
+          status: { sn: [1, 0] },
+          settings: {
+            ps: [
+              [0, 30, 123456],
+              [1, 0, 123456],
+              [2, 0, 123456],
+              [99, 0, 123456],
             ],
             rd: 1,
           },
