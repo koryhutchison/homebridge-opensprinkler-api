@@ -17,6 +17,7 @@ export class Valve {
     private readonly openSprinklerApi: OpenSprinklerApi,
     private readonly valveInfo: ValveConfig,
     private readonly valveIndex: number,
+    private readonly setProgramStatus: (valveState: number) => void,
   ) {
     service.setCharacteristic(platform.Characteristic.Name, valveInfo.name);
     service.setCharacteristic(platform.Characteristic.ValveType, platform.Characteristic.ValveType.IRRIGATION);
@@ -97,6 +98,7 @@ export class Valve {
   }
 
   async setActive(value: CharacteristicValue) {
+    this.setProgramStatus(value as number);
     this.platform.log.debug(`Setting ${this.valveInfo.name} to a value of ${value}.`);
 
     this.state.active = value as number;

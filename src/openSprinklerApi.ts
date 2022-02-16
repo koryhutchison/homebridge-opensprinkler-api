@@ -26,6 +26,7 @@ export class OpenSprinklerApi {
     const {
       status: { sn },
       settings: { ps, rd },
+      programs: { pd },
     } = await this.makeRequest('ja');
 
     // Perform Array.slice here because OpenSprinkler may return more valves than the user actually uses
@@ -40,9 +41,31 @@ export class OpenSprinklerApi {
       return obj;
     }, {});
 
+    const programScheduled = pd.some((program: Array<number>) => {
+      // This checks the first bit of the program flag and this will evaluate to true
+      // when it's enabled. See here:
+      // https://github.com/OpenSprinkler/OpenSprinkler-App/blob/6116c514cbf3a5f25613ab6dbad8ddafc00ceec1/www/js/main.js#L8408
+      return Boolean((program[0] >> 0) & 1);
+    });
+
+    // OpenSprinkler sets the program id to 99 if it's a manually triggered valve
+    const isManual = ps.some((valve: Array<number>) => {
+      return valve[0] === 99;
+    });
+
+    let programStatus = 'off';
+    if (isManual && programScheduled) {
+      programStatus = 'override';
+    } else if (isManual && !programScheduled) {
+      programStatus = 'manual';
+    } else if (!isManual && programScheduled) {
+      programStatus = 'scheduled';
+    }
+
     return {
       valveStatuses,
       rainDelay: !!rd,
+      programStatus,
     };
   }
 

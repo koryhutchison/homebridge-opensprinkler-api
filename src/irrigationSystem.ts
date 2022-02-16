@@ -10,6 +10,7 @@ export class IrrigationSystem {
   private service: Service;
   private valves: Array<Valve> = [];
   private rainDelaySwitch!: RainDelay;
+  private programStatus = 'off';
 
   constructor(
     private readonly platform: OpenSprinklerPlatform,
@@ -46,8 +47,9 @@ export class IrrigationSystem {
 
     setInterval(async () => {
       try {
-        const { valveStatuses, rainDelay } = await this.openSprinklerApi.getSystemStatus(this.platform.config.valves);
+        const { valveStatuses, rainDelay, programStatus } = await this.openSprinklerApi.getSystemStatus(this.platform.config.valves);
         this.updateValves(valveStatuses);
+        this.updateProgramMode(programStatus);
 
         // Only run if rain delay is set.
         if (this.platform.config.rainDelay) {
@@ -65,7 +67,14 @@ export class IrrigationSystem {
         this.accessory.getService(valve.name) ||
         this.accessory.addService(this.platform.Service.Valve, valve.name, `VALVE_${valve.name.replace(' ', '').toUpperCase()}`);
 
-      const valveInstance = new Valve(this.platform, service, this.openSprinklerApi, valve, index);
+      const valveInstance = new Valve(
+        this.platform,
+        service,
+        this.openSprinklerApi,
+        valve,
+        index,
+        this.setProgramStatusViaValve.bind(this),
+      );
 
       this.service.addLinkedService(service);
 
@@ -114,5 +123,35 @@ export class IrrigationSystem {
         valve.updateRemainingDuration(openSprinklerRemainingDuration);
       }
     });
+  }
+
+  updateProgramMode(programStatus: string) {
+    this.platform.log.debug(`Setting program mode: ${programStatus}`);
+    const programMode = this.platform.Characteristic.ProgramMode;
+    const active = this.platform.Characteristic.Active;
+    this.programStatus = programStatus;
+    if (programStatus === 'override') {
+      this.service.updateCharacteristic(active, active.ACTIVE);
+      this.service.updateCharacteristic(programMode, programMode.PROGRAM_SCHEDULED_MANUAL_MODE_);
+    } else if (programStatus === 'scheduled') {
+      this.service.updateCharacteristic(active, active.ACTIVE);
+      this.service.updateCharacteristic(programMode, programMode.PROGRAM_SCHEDULED);
+    } else {
+      // In the case of a manual valve trigger but no program is scheduled, we set the
+      // programMode to NO_PROGRAM_SCHEDULED. Same for if the system is off.
+      this.service.updateCharacteristic(active, active.INACTIVE);
+      this.service.updateCharacteristic(programMode, programMode.NO_PROGRAM_SCHEDULED);
+    }
+  }
+
+  // This is used on the valve side because in the case where a program is scheduled,
+  // yet the user starts a valve, we want HomeKit to show that it was a manual override and
+  // not that the program is running.
+  setProgramStatusViaValve(valveState: number) {
+    const programMode = this.platform.Characteristic.ProgramMode;
+    // If the current status is scheduled, we need to set this to manual override mode.
+    if (this.programStatus === 'scheduled' && valveState === 1) {
+      this.service.updateCharacteristic(programMode, programMode.PROGRAM_SCHEDULED_MANUAL_MODE_);
+    }
   }
 }

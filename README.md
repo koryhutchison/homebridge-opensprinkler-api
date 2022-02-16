@@ -36,4 +36,3 @@ Here are the required and optional parameters you can define in the config:
 ## Future improvements
 
 - Add the ability to run programs
-- Handle the ProgramMode of the irrigation system to indicate if a program is scheduled
