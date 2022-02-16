@@ -53,7 +53,14 @@ export class OpenSprinklerApi {
       return valve[0] === 99;
     });
 
-    const programStatus = isManual ? 'manual' : programScheduled ? 'scheduled' : 'off';
+    let programStatus = 'off';
+    if (isManual && programScheduled) {
+      programStatus = 'override';
+    } else if (isManual && !programScheduled) {
+      programStatus = 'manual';
+    } else if (!isManual && programScheduled) {
+      programStatus = 'scheduled';
+    }
 
     return {
       valveStatuses,

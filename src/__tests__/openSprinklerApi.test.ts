@@ -176,7 +176,7 @@ describe('OpenSprinklerApi', () => {
             ],
             rd: 1,
           },
-          programs: { pd: [[49]] },
+          programs: { pd: [[48]] },
         }),
       });
 
@@ -201,7 +201,7 @@ describe('OpenSprinklerApi', () => {
             ],
             rd: 1,
           },
-          programs: { pd: [[49]] },
+          programs: { pd: [[48]] },
         }),
       });
 
@@ -210,6 +210,31 @@ describe('OpenSprinklerApi', () => {
       const { programStatus } = await api.getSystemStatus(config);
 
       expect(programStatus).toEqual('manual');
+    });
+
+    test('should set program status to override if a program id is 99 and a program is scheduled', async () => {
+      setup({
+        ok: true,
+        json: () => ({
+          status: { sn: [1, 0] },
+          settings: {
+            ps: [
+              [0, 30, 123456],
+              [1, 0, 123456],
+              [2, 0, 123456],
+              [99, 0, 123456],
+            ],
+            rd: 1,
+          },
+          programs: { pd: [[49]] },
+        }),
+      });
+
+      const config = [{ name: 'Front yard', defaultDuration: 300 }];
+
+      const { programStatus } = await api.getSystemStatus(config);
+
+      expect(programStatus).toEqual('override');
     });
   });
 

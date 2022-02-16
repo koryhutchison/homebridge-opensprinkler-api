@@ -130,13 +130,15 @@ export class IrrigationSystem {
     const programMode = this.platform.Characteristic.ProgramMode;
     const active = this.platform.Characteristic.Active;
     this.programStatus = programStatus;
-    if (programStatus === 'manual') {
+    if (programStatus === 'override') {
       this.service.updateCharacteristic(active, active.ACTIVE);
       this.service.updateCharacteristic(programMode, programMode.PROGRAM_SCHEDULED_MANUAL_MODE_);
     } else if (programStatus === 'scheduled') {
       this.service.updateCharacteristic(active, active.ACTIVE);
       this.service.updateCharacteristic(programMode, programMode.PROGRAM_SCHEDULED);
     } else {
+      // In the case of a manual valve trigger but no program is scheduled, we set the
+      // programMode to NO_PROGRAM_SCHEDULED. Same for if the system is off.
       this.service.updateCharacteristic(active, active.INACTIVE);
       this.service.updateCharacteristic(programMode, programMode.NO_PROGRAM_SCHEDULED);
     }
