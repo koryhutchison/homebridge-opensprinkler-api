@@ -15,7 +15,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
-          node-version: 10 # minimum version required
+          node-version: 14 # minimum version required
           registry-url: https://registry.npmjs.org/
       - run: npm ci
       - run: npm publish --tag=beta
@@ -28,7 +28,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
-          node-version: 10 # minimum version required
+          node-version: 14 # minimum version required
           registry-url: https://registry.npmjs.org/
       - run: npm ci
       - run: npm publish

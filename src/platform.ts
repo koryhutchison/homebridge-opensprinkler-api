@@ -1,8 +1,8 @@
 import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig, Service, Characteristic } from 'homebridge';
 
-import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
-import { IrrigationSystem } from './irrigationSystem';
-import { OpenSprinklerApi } from './openSprinklerApi';
+import { PLATFORM_NAME, PLUGIN_NAME } from './settings.js';
+import { IrrigationSystem } from './irrigationSystem.js';
+import { OpenSprinklerApi } from './openSprinklerApi.js';
 import { ValveConfig } from './interfaces';
 import md5 from 'md5';
 

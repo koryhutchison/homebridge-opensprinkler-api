@@ -2,8 +2,8 @@ import { Service, PlatformAccessory } from 'homebridge';
 
 import { OpenSprinklerPlatform } from './platform';
 import { OpenSprinklerApi } from './openSprinklerApi';
-import { Valve } from './valve';
-import { RainDelay } from './rainDelay';
+import { Valve } from './valve.js';
+import { RainDelay } from './rainDelay.js';
 import { ValveConfig, ValveStatuses } from './interfaces';
 
 export class IrrigationSystem {
