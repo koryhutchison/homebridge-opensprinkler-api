@@ -44,8 +44,8 @@ export class OpenSprinklerPlatform implements DynamicPlatformPlugin {
 
   async setUp() {
     try {
-      const { firmwareVersion, hardwareVersion, deviceId } = await this.openSprinklerApi.getInfo();
-      this.createIrrigationSystem(firmwareVersion, hardwareVersion, deviceId);
+      const { firmwareVersion, hardwareVersion, macAddress } = await this.openSprinklerApi.getInfo();
+      this.createIrrigationSystem(firmwareVersion, hardwareVersion, macAddress);
     } catch (error) {
       this.log.error((error as Error).message);
     }
@@ -78,15 +78,15 @@ export class OpenSprinklerPlatform implements DynamicPlatformPlugin {
     }
   }
 
-  createIrrigationSystem(firmwareVersion: string, hardwareVersion: string, deviceId: number) {
-    const uuid = this.api.hap.uuid.generate(deviceId.toString());
+  createIrrigationSystem(firmwareVersion: string, hardwareVersion: string, macAddress: string) {
+    const uuid = this.api.hap.uuid.generate(macAddress);
 
     const existingAccessory = this.accessories.find(accessory => accessory.UUID === uuid);
 
     if (existingAccessory) {
       this.log.info('Restoring existing accessory from cache:', existingAccessory.displayName);
 
-      existingAccessory.context.device = { firmwareVersion, hardwareVersion, deviceId, valves: this.config.valves };
+      existingAccessory.context.device = { firmwareVersion, hardwareVersion, macAddress, valves: this.config.valves };
       this.api.updatePlatformAccessories([existingAccessory]);
 
       new IrrigationSystem(this, existingAccessory, this.openSprinklerApi);
@@ -95,7 +95,7 @@ export class OpenSprinklerPlatform implements DynamicPlatformPlugin {
 
       const accessory = new this.api.platformAccessory('OpenSprinkler', uuid);
 
-      accessory.context.device = { firmwareVersion, hardwareVersion, deviceId, valves: this.config.valves };
+      accessory.context.device = { firmwareVersion, hardwareVersion, macAddress, valves: this.config.valves };
 
       new IrrigationSystem(this, accessory, this.openSprinklerApi);
 
