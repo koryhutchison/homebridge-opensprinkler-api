@@ -19,10 +19,11 @@ describe('OpenSprinklerApi', () => {
 
   describe('getInfo', () => {
     test('should return data correctly formatted', async () => {
-      setup({ ok: true, json: () => ({ options: { fwv: 219, hwv: 64 }, settings: { mac: "BA:BA:BA:BA:BA:BA"} }) });
+      setup({ ok: true, json: () => ({ options: { fwv: 219, hwv: 64 }, settings: { mac: "BA:BA:BA:BA:BA:BA", loc: 'xx.xxxx'} }) });
       const result = await api.getInfo();
 
       expect(result.macAddress).toEqual("BA:BA:BA:BA:BA:BA");
+      expect(result.systemLocation).toEqual('xx.xxxx');
       expect(result.firmwareVersion).toEqual('2.1.9');
       expect(result.hardwareVersion).toEqual('OSPi');
     });

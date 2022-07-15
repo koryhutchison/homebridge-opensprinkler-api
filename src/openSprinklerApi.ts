@@ -12,13 +12,14 @@ export class OpenSprinklerApi {
   }
 
   async getInfo() {
-    const { options: { fwv, hwv }, settings: { mac } } = await this.makeRequest('ja');
+    const { options: { fwv, hwv }, settings: { mac, loc } } = await this.makeRequest('ja');
     const firmwareVersion = fwv.toString();
 
     return {
       firmwareVersion: firmwareVersion.split('').join('.'),
       hardwareVersion: this.getHardwareVersion(hwv),
       macAddress: mac,
+      systemLocation: loc // Will fall back to this value for cache ID if macAddress is undefined
     };
   }
 
