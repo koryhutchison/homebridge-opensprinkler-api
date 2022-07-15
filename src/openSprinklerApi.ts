@@ -19,7 +19,7 @@ export class OpenSprinklerApi {
       firmwareVersion: firmwareVersion.split('').join('.'),
       hardwareVersion: this.getHardwareVersion(hwv),
       macAddress: mac,
-      systemLocation: loc // Will fall back to this value for cache ID if macAddress is undefined
+      systemLocation: loc, // Will fall back to this value for cache ID if macAddress is undefined
     };
   }
 

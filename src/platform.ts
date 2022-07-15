@@ -47,8 +47,10 @@ export class OpenSprinklerPlatform implements DynamicPlatformPlugin {
       const { firmwareVersion, hardwareVersion, macAddress, systemLocation } = await this.openSprinklerApi.getInfo();
 
       // When the location isn't specified, the value is set to "''"
-      if (!macAddress && systemLocation === "''") {
-        throw new Error('Your OpenSprinkler system does not report a mac address and your location attribute is not set. Either one of these values are used to create a unique identifier for your system in HomeKit. If you would rather not set your location, feel free to open an issue on Github and we can figure out a different solution.');
+      if (!macAddress && systemLocation === '\'\'') {
+        throw new Error('Your OpenSprinkler system does not report a mac address and your location attribute is not set. \
+        Either one of these values are used to create a unique identifier for your system in HomeKit. If you would rather not \
+        set your location, feel free to open an issue on Github and we can figure out a different solution.');
       }
 
       this.createIrrigationSystem(firmwareVersion, hardwareVersion, macAddress || systemLocation);
