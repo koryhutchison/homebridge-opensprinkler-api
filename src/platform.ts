@@ -44,8 +44,16 @@ export class OpenSprinklerPlatform implements DynamicPlatformPlugin {
 
   async setUp() {
     try {
-      const { firmwareVersion, hardwareVersion, deviceId } = await this.openSprinklerApi.getInfo();
-      this.createIrrigationSystem(firmwareVersion, hardwareVersion, deviceId);
+      const { firmwareVersion, hardwareVersion, macAddress, systemLocation } = await this.openSprinklerApi.getInfo();
+
+      // When the location isn't specified, the value is set to "''"
+      if (!macAddress && systemLocation === '\'\'') {
+        throw new Error('Your OpenSprinkler system does not report a mac address and your location attribute is not set. \
+        Either one of these values are used to create a unique identifier for your system in HomeKit. If you would rather not \
+        set your location, feel free to open an issue on Github and we can figure out a different solution.');
+      }
+
+      this.createIrrigationSystem(firmwareVersion, hardwareVersion, macAddress || systemLocation);
     } catch (error) {
       this.log.error((error as Error).message);
     }
@@ -78,15 +86,15 @@ export class OpenSprinklerPlatform implements DynamicPlatformPlugin {
     }
   }
 
-  createIrrigationSystem(firmwareVersion: string, hardwareVersion: string, deviceId: number) {
-    const uuid = this.api.hap.uuid.generate(deviceId.toString());
+  createIrrigationSystem(firmwareVersion: string, hardwareVersion: string, uniqueString: string) {
+    const uuid = this.api.hap.uuid.generate(uniqueString);
 
     const existingAccessory = this.accessories.find(accessory => accessory.UUID === uuid);
 
     if (existingAccessory) {
       this.log.info('Restoring existing accessory from cache:', existingAccessory.displayName);
 
-      existingAccessory.context.device = { firmwareVersion, hardwareVersion, deviceId, valves: this.config.valves };
+      existingAccessory.context.device = { firmwareVersion, hardwareVersion, valves: this.config.valves };
       this.api.updatePlatformAccessories([existingAccessory]);
 
       new IrrigationSystem(this, existingAccessory, this.openSprinklerApi);
@@ -95,7 +103,7 @@ export class OpenSprinklerPlatform implements DynamicPlatformPlugin {
 
       const accessory = new this.api.platformAccessory('OpenSprinkler', uuid);
 
-      accessory.context.device = { firmwareVersion, hardwareVersion, deviceId, valves: this.config.valves };
+      accessory.context.device = { firmwareVersion, hardwareVersion, valves: this.config.valves };
 
       new IrrigationSystem(this, accessory, this.openSprinklerApi);
 

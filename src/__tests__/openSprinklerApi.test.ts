@@ -19,44 +19,45 @@ describe('OpenSprinklerApi', () => {
 
   describe('getInfo', () => {
     test('should return data correctly formatted', async () => {
-      setup({ ok: true, json: () => ({ fwv: 219, hwv: 64, devid: 0 }) });
+      setup({ ok: true, json: () => ({ options: { fwv: 219, hwv: 64 }, settings: { mac: "BA:BA:BA:BA:BA:BA", loc: 'xx.xxxx' } }) });
       const result = await api.getInfo();
 
-      expect(result.deviceId).toEqual(0);
+      expect(result.macAddress).toEqual("BA:BA:BA:BA:BA:BA");
+      expect(result.systemLocation).toEqual('xx.xxxx');
       expect(result.firmwareVersion).toEqual('2.1.9');
       expect(result.hardwareVersion).toEqual('OSPi');
     });
 
     test('should simply return the hardwareVersion if OpenSprinkler returns a string', async () => {
-      setup({ ok: true, json: () => ({ fwv: 219, hwv: 'some string', devid: 0 }) });
+      setup({ ok: true, json: () => ({ options: { fwv: 219, hwv: 'some string' }, settings: { mac: "BA:BA:BA:BA:BA:BA"} }) });
       const result = await api.getInfo();
 
       expect(result.hardwareVersion).toEqual('some string');
     });
 
     test('should return OSBo if version is 128', async () => {
-      setup({ ok: true, json: () => ({ fwv: 219, hwv: 128, devid: 0 }) });
+      setup({ ok: true, json: () => ({ options: { fwv: 219, hwv: 128 }, settings: { mac: "BA:BA:BA:BA:BA:BA"} }) });
       const result = await api.getInfo();
 
       expect(result.hardwareVersion).toEqual('OSBo');
     });
 
     test('should return Linux if version is 192', async () => {
-      setup({ ok: true, json: () => ({ fwv: 219, hwv: 192, devid: 0 }) });
+      setup({ ok: true, json: () => ({ options: { fwv: 219, hwv: 192 }, settings: { mac: "BA:BA:BA:BA:BA:BA"} }) });
       const result = await api.getInfo();
 
       expect(result.hardwareVersion).toEqual('Linux');
     });
 
     test('should return Demo if version is 255', async () => {
-      setup({ ok: true, json: () => ({ fwv: 219, hwv: 255, devid: 0 }) });
+      setup({ ok: true, json: () => ({ options: { fwv: 219, hwv: 255 }, settings: { mac: "BA:BA:BA:BA:BA:BA"} }) });
       const result = await api.getInfo();
 
       expect(result.hardwareVersion).toEqual('Demo');
     });
 
     test('should return 0.2 if version is 2', async () => {
-      setup({ ok: true, json: () => ({ fwv: 219, hwv: 2, devid: 0 }) });
+      setup({ ok: true, json: () => ({ options: { fwv: 219, hwv: 2 }, settings: { mac: "BA:BA:BA:BA:BA:BA"} }) });
       const result = await api.getInfo();
 
       expect(result.hardwareVersion).toEqual('0.2');
