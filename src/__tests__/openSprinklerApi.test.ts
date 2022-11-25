@@ -1,12 +1,11 @@
 import fetch from 'node-fetch';
-import { mocked } from 'ts-jest/utils';
 import { OpenSprinklerApi } from '../openSprinklerApi';
 
 jest.mock('node-fetch');
 
 const api = new OpenSprinklerApi('password', 'localhost');
 
-const mockFetch = mocked(fetch, true);
+const mockFetch = jest.mocked(fetch);
 
 describe('OpenSprinklerApi', () => {
   afterEach(() => {
