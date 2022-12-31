@@ -11,6 +11,14 @@ export class OpenSprinklerApi {
     this.baseUrl = `http://${host}`;
   }
 
+  // This will be used to determine if the firmware version is supported
+  async checkSupport() {
+    const { fwv } = await this.makeRequest('jo');
+
+    // This plugin supports version 2.1.6 and above. So if it's 2.1.5 or lower, we'll indicate that.
+    return fwv > 215 ? true : false;
+  }
+
   async getInfo() {
     const { options: { fwv, hwv }, settings: { mac, loc } } = await this.makeRequest('ja');
     const firmwareVersion = fwv.toString();
