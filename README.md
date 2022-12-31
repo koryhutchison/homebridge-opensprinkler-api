@@ -16,6 +16,12 @@ Homebridge plugin to control OpenSprinkler with HomeKit via the OpenSprinkler AP
 
 </span>
 
+## Support
+
+This plugin only supports OpenSprinkler firmware version 2.1.6 and above. If you aren't on one of these
+firmware versions, you'll need to upgrade. If you're on one of the supported firmware versions and
+the plugin still doesn't work, please open an issue on Github.
+
 ## Installation
 
 Install via the Homebridge UI for the easiest experience. Search under the "Plugins" tab for `homebridge-opensprinkler-api` and click "Install".

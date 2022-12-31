@@ -281,4 +281,22 @@ describe('OpenSprinklerApi', () => {
       }
     });
   });
+
+  describe('checkSupport', () => {
+    test('should return true if the firmware version is greater than 2.1.5', async () => {
+      setup({ ok: true, json: () => ({ fwv: 216 }) });
+
+      const result = await api.checkSupport();
+
+      expect(result).toBe(true);
+    });
+
+    test('should return false if the firmware version is less than 2.1.6', async () => {
+      setup({ ok: true, json: () => ({ fwv: 215 }) });
+
+      const result = await api.checkSupport();
+
+      expect(result).toBe(false);
+    });
+  })
 });
