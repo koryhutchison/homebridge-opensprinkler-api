@@ -47,7 +47,7 @@ export class OpenSprinklerPlatform implements DynamicPlatformPlugin {
       const isSupportedFirmware = await this.openSprinklerApi.checkSupport();
 
       if (!isSupportedFirmware) {
-        throw new Error('This plugin only supports firmware version 2.1.6 and above. Please update your firmware and try again.')
+        throw new Error('This plugin only supports firmware version 2.1.6 and above. Please update your firmware and try again.');
       }
 
       const { firmwareVersion, hardwareVersion, macAddress, systemLocation } = await this.openSprinklerApi.getInfo();
